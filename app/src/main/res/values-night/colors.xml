@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Colors - Dark Mode -->
+    <color name="primary">#64B5F6</color>
+    <color name="primary_dark">#42A5F5</color>
+    <color name="primary_light">#90CAF9</color>
+    
+    <!-- Accent Colors -->
+    <color name="accent">#4DD0E1</color>
+    <color name="accent_dark">#26C6DA</color>
+    <color name="accent_light">#80DEEA</color>
+    
+    <!-- Background Colors - Dark -->
+    <color name="background">#121212</color>
+    <color name="surface">#1E1E1E</color>
+    <color name="surface_variant">#2C2C2C</color>
+    
+    <!-- Text Colors - Dark -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#B0B0B0</color>
+    <color name="text_hint">#757575</color>
+    
+    <!-- Health Status Colors (same) -->
+    <color name="health_excellent">#4CAF50</color>
+    <color name="health_good">#8BC34A</color>
+    <color name="health_warning">#FF9800</color>
+    <color name="health_danger">#F44336</color>
+    
+    <!-- Measurement Colors (brighter for dark mode) -->
+    <color name="heart_rate">#F48FB1</color>
+    <color name="blood_pressure">#CE93D8</color>
+    <color name="oxygen">#64B5F6</color>
+    <color name="temperature">#FF8A65</color>
+</resources>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">iMonitor</string>
+    
+    <!-- Login -->
+    <string name="login">Accedi</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    
+    <!-- Navigation -->
+    <string name="dashboard">Dashboard</string>
+    <string name="measurements">Misurazioni</string>
+    <string name="history">Storico</string>
+    <string name="settings">Impostazioni</string>
+    
+    <!-- Parameters -->
+    <string name="heart_rate">Battito Cardiaco</string>
+    <string name="blood_pressure">Pressione Sanguigna</string>
+    <string name="oxygen">Saturazione Ossigeno</string>
+    <string name="temperature">Temperatura</string>
+    <string name="glucose">Glicemia</string>
+    <string name="saturation">Saturazione</string>
+    
+    <!-- Units -->
+    <string name="unit_bpm">bpm</string>
+    <string name="unit_mmhg">mmHg</string>
+    <string name="unit_percent">%</string>
+    <string name="unit_celsius">°C</string>
+    <string name="unit_mgdl">mg/dL</string>
+    
+    <!-- Messages -->
+    <string name="no_measurements">Nessuna misurazione disponibile</string>
+    <string name="connecting">Connessione al dispositivo...</string>
+    <string name="connected">Connesso</string>
+    <string name="disconnected">Disconnesso</string>
+    <string name="export_excel">Esporta Excel</string>
+    <string name="export_success">File esportato con successo</string>
+    <string name="last_update">Ultimo aggiornamento: %s</string>
+    <string name="current_value">Valore Attuale</string>
+    <string name="trend_7days">Andamento Ultimi 7 Giorni</string>
+    <string name="recent_measurements">Ultime Misurazioni</string>
+    
+    <!-- User Info -->
+    <string name="user_info">Informazioni Utente</string>
+    <string name="age_years">%d anni</string>
+    <string name="age_not_specified">Età non specificata</string>
+    <string name="pathology_not_specified">Non specificata</string>
+    
+    <!-- Watch Battery -->
+    <string name="watch_battery">Batteria Smartwatch</string>
+    <string name="battery_level">%d%%</string>
+    <string name="battery_charging">%d%% (In carica)</string>
+    <string name="battery_disconnected">Smartwatch non connesso</string>
+    <string name="battery_unknown">Livello batteria sconosciuto</string>
+    <string name="battery_last_update">Aggiornato: %s</string>
+    <string name="battery_never_updated">Mai aggiornato</string>
+    
+    <!-- Updates -->
+    <string name="updates">Aggiornamenti</string>
+    <string name="auto_check_updates">Controllo Automatico</string>
+    <string name="check_for_updates">Verifica Aggiornamenti</string>
+    <string name="last_check">Ultimo controllo: %s</string>
+    <string name="update_available">Versione %s disponibile!</string>
+    <string name="app_up_to_date">App aggiornata</string>
+    <string name="checking_updates">Controllo aggiornamenti...</string>
+    <string name="download_update">Scarica</string>
+</resources>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background normale -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/surface"/>
+            <corners android:radius="20dp"/>
+        </shape>
+    </item>
+    
+    <!-- Bordo rosso lampeggiante -->
+    <item>
+        <shape android:shape="rectangle">
+            <stroke
+                android:width="4dp"
+                android:color="@color/health_danger"/>
+            <corners android:radius="20dp"/>
+        </shape>
+    </item>
+</layer-list>

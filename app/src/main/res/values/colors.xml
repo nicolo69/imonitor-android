@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Colors - Medical Blue Theme -->
+    <color name="primary">#2196F3</color>
+    <color name="primary_dark">#1976D2</color>
+    <color name="primary_light">#BBDEFB</color>
+    
+    <!-- Accent Colors - Health Green -->
+    <color name="accent">#00BCD4</color>
+    <color name="accent_dark">#0097A7</color>
+    <color name="accent_light">#B2EBF2</color>
+    
+    <!-- Background Colors -->
+    <color name="background">#F5F7FA</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_variant">#F8F9FB</color>
+    
+    <!-- Text Colors -->
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_hint">#BDBDBD</color>
+    
+    <!-- Health Status Colors -->
+    <color name="health_excellent">#4CAF50</color>
+    <color name="health_good">#8BC34A</color>
+    <color name="health_warning">#FF9800</color>
+    <color name="health_danger">#F44336</color>
+    
+    <!-- Measurement Colors -->
+    <color name="heart_rate">#E91E63</color>
+    <color name="blood_pressure">#9C27B0</color>
+    <color name="oxygen">#2196F3</color>
+    <color name="temperature">#FF5722</color>
+    
+    <!-- Standard Colors -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="transparent">#00000000</color>
+    
+    <!-- Gradient Colors -->
+    <color name="gradient_start">#2196F3</color>
+    <color name="gradient_end">#00BCD4</color>
+</resources>

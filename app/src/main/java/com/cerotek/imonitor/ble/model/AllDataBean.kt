@@ -55,3 +55,4 @@ data class AllDataBean(
     val bodyTemperature: Float
         get() = tempInt + (tempFloat / 10f)
 }
+

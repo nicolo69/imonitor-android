@@ -25,26 +25,29 @@ import com.cerotek.imonitor.ui.theme.*
 @Composable
 fun ThresholdsScreen(navController: NavController) {
     val context = LocalContext.current
-    val sharedPrefs = remember { context.getSharedPreferences("thresholds_prefs", android.content.Context.MODE_PRIVATE) }
+    val settingsManager = remember { com.cerotek.imonitor.util.SettingsManager(context) }
     
-    // Stati per ogni parametro
-    var pressureMin by remember { mutableStateOf(sharedPrefs.getString("pressure_min", "90/60") ?: "90/60") }
-    var pressureMax by remember { mutableStateOf(sharedPrefs.getString("pressure_max", "140/90") ?: "140/90") }
+    // Stati per ogni parametro caricati dal SettingsManager
+    var heartRateMin by remember { mutableStateOf(settingsManager.getThreshold(ParameterTypes.HEART_RATE).minValue.toInt().toString()) }
+    var heartRateMax by remember { mutableStateOf(settingsManager.getThreshold(ParameterTypes.HEART_RATE).maxValue.toInt().toString()) }
     
-    var saturationMin by remember { mutableStateOf(sharedPrefs.getString("saturation_min", "95") ?: "95") }
-    var saturationMax by remember { mutableStateOf(sharedPrefs.getString("saturation_max", "100") ?: "100") }
+    var pressureSysMin by remember { mutableStateOf(settingsManager.getThreshold(ParameterTypes.BLOOD_PRESSURE_SYSTOLIC).minValue.toInt().toString()) }
+    var pressureSysMax by remember { mutableStateOf(settingsManager.getThreshold(ParameterTypes.BLOOD_PRESSURE_SYSTOLIC).maxValue.toInt().toString()) }
     
-    var heartRateMin by remember { mutableStateOf(sharedPrefs.getString("heart_rate_min", "60") ?: "60") }
-    var heartRateMax by remember { mutableStateOf(sharedPrefs.getString("heart_rate_max", "100") ?: "100") }
+    var pressureDiaMin by remember { mutableStateOf(settingsManager.getThreshold(ParameterTypes.BLOOD_PRESSURE_DIASTOLIC).minValue.toInt().toString()) }
+    var pressureDiaMax by remember { mutableStateOf(settingsManager.getThreshold(ParameterTypes.BLOOD_PRESSURE_DIASTOLIC).maxValue.toInt().toString()) }
     
-    var temperatureMin by remember { mutableStateOf(sharedPrefs.getString("temperature_min", "36.0") ?: "36.0") }
-    var temperatureMax by remember { mutableStateOf(sharedPrefs.getString("temperature_max", "37.5") ?: "37.5") }
+    var saturationMin by remember { mutableStateOf(settingsManager.getThreshold(ParameterTypes.OXYGEN_SATURATION).minValue.toInt().toString()) }
+    var saturationMax by remember { mutableStateOf(settingsManager.getThreshold(ParameterTypes.OXYGEN_SATURATION).maxValue.toInt().toString()) }
     
-    var glucoseMin by remember { mutableStateOf(sharedPrefs.getString("glucose_min", "70") ?: "70") }
-    var glucoseMax by remember { mutableStateOf(sharedPrefs.getString("glucose_max", "140") ?: "140") }
+    var temperatureMin by remember { mutableStateOf(settingsManager.getThreshold(ParameterTypes.TEMPERATURE).minValue.toString()) }
+    var temperatureMax by remember { mutableStateOf(settingsManager.getThreshold(ParameterTypes.TEMPERATURE).maxValue.toString()) }
     
-    var bodyFatMin by remember { mutableStateOf(sharedPrefs.getString("body_fat_min", "10") ?: "10") }
-    var bodyFatMax by remember { mutableStateOf(sharedPrefs.getString("body_fat_max", "30") ?: "30") }
+    var glucoseMin by remember { mutableStateOf(settingsManager.getThreshold(ParameterTypes.BLOOD_SUGAR).minValue.toInt().toString()) }
+    var glucoseMax by remember { mutableStateOf(settingsManager.getThreshold(ParameterTypes.BLOOD_SUGAR).maxValue.toInt().toString()) }
+    
+    var bodyFatMin by remember { mutableStateOf(settingsManager.getThreshold(ParameterTypes.BODY_FAT).minValue.toInt().toString()) }
+    var bodyFatMax by remember { mutableStateOf(settingsManager.getThreshold(ParameterTypes.BODY_FAT).maxValue.toInt().toString()) }
     
     var showSavedMessage by remember { mutableStateOf(false) }
     
@@ -82,39 +85,72 @@ fun ThresholdsScreen(navController: NavController) {
             // Info Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFE3F2FD)
-                )
+                    containerColor = SecondaryColor.copy(alpha = 0.5f)
+                ),
+                border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryBlue.copy(alpha = 0.1f))
             ) {
                 Row(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier.padding(20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        Icons.Default.Info,
-                        contentDescription = null,
-                        tint = PrimaryBlue,
-                        modifier = Modifier.size(24.dp)
-                    )
+                    Surface(
+                        color = PrimaryBlue.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                Icons.Default.Info,
+                                contentDescription = null,
+                                tint = PrimaryBlue,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
                     Text(
-                        "Imposta i valori minimi e massimi per ogni parametro. I valori fuori soglia verranno evidenziati in giallo (attenzione) o rosso (alert).",
-                        fontSize = 14.sp,
-                        color = TextPrimary,
-                        lineHeight = 20.sp
+                        "Imposta i valori minimi e massimi per ogni parametro. I valori fuori soglia verranno evidenziati per allertare l'utente.",
+                        fontSize = 13.sp,
+                        color = TextPrimary.copy(alpha = 0.8f),
+                        lineHeight = 18.sp,
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
             
-            // Pressione Sanguigna
+            // Frequenza Cardiaca
             ThresholdCard(
-                title = "Pressione Sanguigna",
+                title = "Frequenza Cardiaca",
+                icon = Icons.Default.MonitorHeart,
+                unit = "bpm",
+                minValue = heartRateMin,
+                maxValue = heartRateMax,
+                onMinChange = { heartRateMin = it },
+                onMaxChange = { heartRateMax = it }
+            )
+            
+            // Pressione Sistolica
+            ThresholdCard(
+                title = "Pressione Sistolica",
                 icon = Icons.Default.Favorite,
                 unit = "mmHg",
-                minValue = pressureMin,
-                maxValue = pressureMax,
-                onMinChange = { pressureMin = it },
-                onMaxChange = { pressureMax = it }
+                minValue = pressureSysMin,
+                maxValue = pressureSysMax,
+                onMinChange = { pressureSysMin = it } ,
+                onMaxChange = { pressureSysMax = it }
+            )
+
+            // Pressione Diastolica
+            ThresholdCard(
+                title = "Pressione Diastolica",
+                icon = Icons.Default.FavoriteBorder,
+                unit = "mmHg",
+                minValue = pressureDiaMin,
+                maxValue = pressureDiaMax,
+                onMinChange = { pressureDiaMin = it } ,
+                onMaxChange = { pressureDiaMax = it }
             )
             
             // Saturazione
@@ -126,17 +162,6 @@ fun ThresholdsScreen(navController: NavController) {
                 maxValue = saturationMax,
                 onMinChange = { saturationMin = it },
                 onMaxChange = { saturationMax = it }
-            )
-            
-            // Frequenza Cardiaca
-            ThresholdCard(
-                title = "Frequenza Cardiaca",
-                icon = Icons.Default.MonitorHeart,
-                unit = "bpm",
-                minValue = heartRateMin,
-                maxValue = heartRateMax,
-                onMinChange = { heartRateMin = it },
-                onMaxChange = { heartRateMax = it }
             )
             
             // Temperatura
@@ -177,35 +202,29 @@ fun ThresholdsScreen(navController: NavController) {
             // Pulsante Salva
             Button(
                 onClick = {
-                    // Salva tutte le soglie
-                    sharedPrefs.edit().apply {
-                        putString("pressure_min", pressureMin)
-                        putString("pressure_max", pressureMax)
-                        putString("saturation_min", saturationMin)
-                        putString("saturation_max", saturationMax)
-                        putString("heart_rate_min", heartRateMin)
-                        putString("heart_rate_max", heartRateMax)
-                        putString("temperature_min", temperatureMin)
-                        putString("temperature_max", temperatureMax)
-                        putString("glucose_min", glucoseMin)
-                        putString("glucose_max", glucoseMax)
-                        putString("body_fat_min", bodyFatMin)
-                        putString("body_fat_max", bodyFatMax)
-                        apply()
-                    }
+                    // Salva tutte le soglie tramite SettingsManager
+                    settingsManager.setThreshold(ParameterThreshold(ParameterTypes.HEART_RATE, heartRateMin.toFloatOrNull() ?: 60f, heartRateMax.toFloatOrNull() ?: 100f, "bpm"))
+                    settingsManager.setThreshold(ParameterThreshold(ParameterTypes.BLOOD_PRESSURE_SYSTOLIC, pressureSysMin.toFloatOrNull() ?: 90f, pressureSysMax.toFloatOrNull() ?: 140f, "mmHg"))
+                    settingsManager.setThreshold(ParameterThreshold(ParameterTypes.BLOOD_PRESSURE_DIASTOLIC, pressureDiaMin.toFloatOrNull() ?: 60f, pressureDiaMax.toFloatOrNull() ?: 90f, "mmHg"))
+                    settingsManager.setThreshold(ParameterThreshold(ParameterTypes.OXYGEN_SATURATION, saturationMin.toFloatOrNull() ?: 95f, saturationMax.toFloatOrNull() ?: 100f, "%"))
+                    settingsManager.setThreshold(ParameterThreshold(ParameterTypes.TEMPERATURE, temperatureMin.toFloatOrNull() ?: 36f, temperatureMax.toFloatOrNull() ?: 37.5f, "°C"))
+                    settingsManager.setThreshold(ParameterThreshold(ParameterTypes.BLOOD_SUGAR, glucoseMin.toFloatOrNull() ?: 70f, glucoseMax.toFloatOrNull() ?: 140f, "mg/dL"))
+                    settingsManager.setThreshold(ParameterThreshold(ParameterTypes.BODY_FAT, bodyFatMin.toFloatOrNull() ?: 10f, bodyFatMax.toFloatOrNull() ?: 30f, "%"))
+                    
                     showSavedMessage = true
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
+                    .height(60.dp),
+                shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = PrimaryBlue
-                )
+                ),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
             ) {
-                Icon(Icons.Default.Save, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Salva Soglie", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.width(12.dp))
+                Text("Salva Impostazioni", fontSize = 16.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
             }
             
             // Messaggio salvato
@@ -217,31 +236,42 @@ fun ThresholdsScreen(navController: NavController) {
                 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = StatusGreen
-                    )
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            Icons.Default.CheckCircle,
-                            contentDescription = null,
-                            tint = Color.White
-                        )
+                        Surface(
+                            color = Color.White.copy(alpha = 0.2f),
+                            shape = androidx.compose.foundation.shape.CircleShape,
+                            modifier = Modifier.size(28.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
                         Text(
-                            "Soglie salvate con successo!",
+                            "Impostazioni salvate con successo!",
                             color = Color.White,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 14.sp
                         )
                     }
                 }
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -258,33 +288,62 @@ fun ThresholdCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
-        elevation = CardDefaults.cardElevation(4.dp)
+        elevation = CardDefaults.cardElevation(2.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFEEEEEE))
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             // Header
             Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    icon,
-                    contentDescription = null,
-                    tint = PrimaryBlue,
-                    modifier = Modifier.size(28.dp)
-                )
-                Text(
-                    title,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        color = BackgroundLight,
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                icon,
+                                contentDescription = null,
+                                tint = PrimaryBlue,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                    }
+                    Text(
+                        title,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                }
+                
+                Surface(
+                    color = PrimaryBlue.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    Text(
+                        text = unit,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PrimaryBlue
+                    )
+                }
             }
             
             // Min e Max
@@ -298,22 +357,29 @@ fun ThresholdCard(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        "Minimo",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = TextSecondary
+                        "LIMITE MIN",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextSecondary,
+                        letterSpacing = 0.5.sp
                     )
                     OutlinedTextField(
                         value = minValue,
                         onValueChange = onMinChange,
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        suffix = { Text(unit, fontSize = 12.sp, color = TextSecondary) },
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = PrimaryBlue,
-                            focusedLabelColor = PrimaryBlue
-                        )
+                            unfocusedBorderColor = Color(0xFFE0E0E0),
+                            unfocusedContainerColor = Color(0xFFF9F9F9),
+                            focusedContainerColor = Color.White
+                        ),
+                        textStyle = androidx.compose.ui.text.TextStyle(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
+                        ),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
                 }
                 
@@ -323,22 +389,29 @@ fun ThresholdCard(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        "Massimo",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = TextSecondary
+                        "LIMITE MAX",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextSecondary,
+                        letterSpacing = 0.5.sp
                     )
                     OutlinedTextField(
                         value = maxValue,
                         onValueChange = onMaxChange,
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        suffix = { Text(unit, fontSize = 12.sp, color = TextSecondary) },
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = PrimaryBlue,
-                            focusedLabelColor = PrimaryBlue
-                        )
+                            unfocusedBorderColor = Color(0xFFE0E0E0),
+                            unfocusedContainerColor = Color(0xFFF9F9F9),
+                            focusedContainerColor = Color.White
+                        ),
+                        textStyle = androidx.compose.ui.text.TextStyle(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
+                        ),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
                 }
             }

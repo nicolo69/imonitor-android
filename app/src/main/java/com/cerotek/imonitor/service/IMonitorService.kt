@@ -13,6 +13,8 @@ import com.cerotek.imonitor.R
 import com.cerotek.imonitor.ble.WatchMonitor
 import com.cerotek.imonitor.ble.model.AllDataBean
 import com.cerotek.imonitor.ble.model.WatchState
+import com.cerotek.imonitor.data.model.ParameterTypes
+import com.cerotek.imonitor.data.model.ParameterThreshold
 import com.cerotek.imonitor.data.local.entity.MeasurementEntity
 import com.cerotek.imonitor.ui.main.MainActivity
 import kotlinx.coroutines.*
@@ -248,105 +250,121 @@ class IMonitorService : Service() {
      */
     private suspend fun checkParameterThresholds(measurement: AllDataBean) {
         try {
-            val thresholds = repository.getAllThresholds()
-            
             // Frequenza cardiaca
-            thresholds.find { it.parameterType == "heart_rate" }?.let { threshold ->
-                measurement.heartRate?.let { hr ->
-                    when {
-                        hr < threshold.minValue -> {
-                            alertManager.sendWarningAlert(
-                                parameterName = "Frequenza Cardiaca",
-                                currentValue = "$hr bpm",
-                                thresholdValue = "minimo ${threshold.minValue.toInt()} bpm"
-                            )
-                        }
-                        hr > threshold.maxValue -> {
-                            alertManager.sendCriticalAlert(
-                                parameterName = "Frequenza Cardiaca",
-                                currentValue = "$hr bpm",
-                                thresholdValue = "massimo ${threshold.maxValue.toInt()} bpm"
-                            )
-                        }
-                    }
-                }
-            }
+            val settingsManager = com.cerotek.imonitor.util.SettingsManager(this)
             
-            // Pressione sanguigna
-            thresholds.find { it.parameterType == "blood_pressure" }?.let { threshold ->
-                measurement.systolic?.let { sys ->
-                    when {
-                        sys < threshold.minValue -> {
-                            alertManager.sendWarningAlert(
-                                parameterName = "Pressione Sanguigna",
-                                currentValue = "$sys mmHg",
-                                thresholdValue = "minimo ${threshold.minValue.toInt()} mmHg"
-                            )
-                        }
-                        sys > threshold.maxValue -> {
-                            alertManager.sendCriticalAlert(
-                                parameterName = "Pressione Sanguigna",
-                                currentValue = "$sys mmHg",
-                                thresholdValue = "massimo ${threshold.maxValue.toInt()} mmHg"
-                            )
-                        }
+            val hrThreshold = settingsManager.getThreshold(com.cerotek.imonitor.data.model.ParameterTypes.HEART_RATE)
+            measurement.heartRate?.let { hr ->
+                when {
+                    hr < hrThreshold.minValue -> {
+                        alertManager.sendWarningAlert(
+                            parameterName = "Frequenza Cardiaca",
+                            currentValue = "$hr bpm",
+                            thresholdValue = "minimo ${hrThreshold.minValue.toInt()} bpm"
+                        )
                     }
-                }
-            }
-            
-            // Saturazione ossigeno
-            thresholds.find { it.parameterType == "oxygen_saturation" }?.let { threshold ->
-                measurement.oxygenSaturation?.let { spo2 ->
-                    if (spo2 < threshold.minValue) {
+                    hr > hrThreshold.maxValue -> {
                         alertManager.sendCriticalAlert(
-                            parameterName = "Saturazione Ossigeno",
-                            currentValue = "$spo2%",
-                            thresholdValue = "minimo ${threshold.minValue.toInt()}%"
+                            parameterName = "Frequenza Cardiaca",
+                            currentValue = "$hr bpm",
+                            thresholdValue = "massimo ${hrThreshold.maxValue.toInt()} bpm"
                         )
                     }
                 }
             }
             
+            // Pressione sanguigna - SISTOLICA
+            val sysThreshold = settingsManager.getThreshold(com.cerotek.imonitor.data.model.ParameterTypes.BLOOD_PRESSURE_SYSTOLIC)
+            measurement.systolic?.let { sys ->
+                when {
+                    sys < sysThreshold.minValue -> {
+                        alertManager.sendWarningAlert(
+                            parameterName = "Pressione Sistolica",
+                            currentValue = "$sys mmHg",
+                            thresholdValue = "minimo ${sysThreshold.minValue.toInt()} mmHg"
+                        )
+                    }
+                    sys > sysThreshold.maxValue -> {
+                        alertManager.sendCriticalAlert(
+                            parameterName = "Pressione Sistolica",
+                            currentValue = "$sys mmHg",
+                            thresholdValue = "massimo ${sysThreshold.maxValue.toInt()} mmHg"
+                        )
+                    }
+                }
+            }
+
+            // Pressione sanguigna - DIASTOLICA
+            val diaThreshold = settingsManager.getThreshold(com.cerotek.imonitor.data.model.ParameterTypes.BLOOD_PRESSURE_DIASTOLIC)
+            measurement.diastolic?.let { dia ->
+                when {
+                    dia < diaThreshold.minValue -> {
+                        alertManager.sendWarningAlert(
+                            parameterName = "Pressione Diastolica",
+                            currentValue = "$dia mmHg",
+                            thresholdValue = "minimo ${diaThreshold.minValue.toInt()} mmHg"
+                        )
+                    }
+                    dia > diaThreshold.maxValue -> {
+                        alertManager.sendCriticalAlert(
+                            parameterName = "Pressione Diastolica",
+                            currentValue = "$dia mmHg",
+                            thresholdValue = "massimo ${diaThreshold.maxValue.toInt()} mmHg"
+                        )
+                    }
+                }
+            }
+            
+            // Saturazione ossigeno
+            val saturationThreshold = settingsManager.getThreshold(com.cerotek.imonitor.data.model.ParameterTypes.OXYGEN_SATURATION)
+            measurement.oxygenSaturation?.let { spo2 ->
+                if (spo2 < saturationThreshold.minValue) {
+                    alertManager.sendCriticalAlert(
+                        parameterName = "Saturazione Ossigeno",
+                        currentValue = "$spo2%",
+                        thresholdValue = "minimo ${saturationThreshold.minValue.toInt()}%"
+                    )
+                }
+            }
+            
             // Temperatura corporea
-            thresholds.find { it.parameterType == "temperature" }?.let { threshold ->
-                measurement.bodyTemperature?.let { temp ->
-                    when {
-                        temp < threshold.minValue -> {
-                            alertManager.sendWarningAlert(
-                                parameterName = "Temperatura",
-                                currentValue = "%.1f°C".format(temp),
-                                thresholdValue = "minimo %.1f°C".format(threshold.minValue)
-                            )
-                        }
-                        temp > threshold.maxValue -> {
-                            alertManager.sendCriticalAlert(
-                                parameterName = "Temperatura",
-                                currentValue = "%.1f°C".format(temp),
-                                thresholdValue = "massimo %.1f°C".format(threshold.maxValue)
-                            )
-                        }
+            val tempThreshold = settingsManager.getThreshold(com.cerotek.imonitor.data.model.ParameterTypes.TEMPERATURE)
+            measurement.bodyTemperature?.let { temp ->
+                when {
+                    temp < tempThreshold.minValue -> {
+                        alertManager.sendWarningAlert(
+                            parameterName = "Temperatura",
+                            currentValue = "%.1f°C".format(temp),
+                            thresholdValue = "minimo %.1f°C".format(tempThreshold.minValue)
+                        )
+                    }
+                    temp > tempThreshold.maxValue -> {
+                        alertManager.sendCriticalAlert(
+                            parameterName = "Temperatura",
+                            currentValue = "%.1f°C".format(temp),
+                            thresholdValue = "massimo %.1f°C".format(tempThreshold.maxValue)
+                        )
                     }
                 }
             }
             
             // Glicemia
-            thresholds.find { it.parameterType == "blood_sugar" }?.let { threshold ->
-                measurement.bloodSugarFloat?.let { sugar ->
-                    when {
-                        sugar < threshold.minValue -> {
-                            alertManager.sendWarningAlert(
-                                parameterName = "Glicemia",
-                                currentValue = "%.1f mg/dL".format(sugar),
-                                thresholdValue = "minimo %.1f mg/dL".format(threshold.minValue)
-                            )
-                        }
-                        sugar > threshold.maxValue -> {
-                            alertManager.sendCriticalAlert(
-                                parameterName = "Glicemia",
-                                currentValue = "%.1f mg/dL".format(sugar),
-                                thresholdValue = "massimo %.1f mg/dL".format(threshold.maxValue)
-                            )
-                        }
+            val sugarThreshold = settingsManager.getThreshold(com.cerotek.imonitor.data.model.ParameterTypes.BLOOD_SUGAR)
+            measurement.bloodSugarFloat?.let { sugar ->
+                when {
+                    sugar < sugarThreshold.minValue -> {
+                        alertManager.sendWarningAlert(
+                            parameterName = "Glicemia",
+                            currentValue = "%.1f mg/dL".format(sugar),
+                            thresholdValue = "minimo %.1f mg/dL".format(sugarThreshold.minValue)
+                        )
+                    }
+                    sugar > sugarThreshold.maxValue -> {
+                        alertManager.sendCriticalAlert(
+                            parameterName = "Glicemia",
+                            currentValue = "%.1f mg/dL".format(sugar),
+                            thresholdValue = "massimo %.1f mg/dL".format(sugarThreshold.maxValue)
+                        )
                     }
                 }
             }

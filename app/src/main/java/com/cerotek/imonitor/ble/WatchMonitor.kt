@@ -19,6 +19,9 @@ class WatchMonitor(private val context: Context) {
     val measurementData: StateFlow<List<AllDataBean>> = _measurementData.asStateFlow()
     
     private val batteryManager = WatchBatteryManager(context)
+    
+    fun batteryLevel(): StateFlow<Int> = batteryManager.batteryLevel
+    fun isCharging(): StateFlow<Boolean> = batteryManager.isCharging
 
     var watchMacAddress: String = ""
         set(value) {
@@ -83,6 +86,14 @@ class WatchMonitor(private val context: Context) {
         //         setupMonitor()
         //     }
         // }
+    }
+    
+    fun disconnect() {
+        Log.i(TAG, "Disconnecting from device")
+        batteryManager.setWatchConnected(false)
+        // YCBTClient.disconnectBle()
+        disableState(WatchState.WATCH_CONNECTED)
+        disableState(WatchState.WATCH_FOUND)
     }
 
     private fun setupMonitor() {

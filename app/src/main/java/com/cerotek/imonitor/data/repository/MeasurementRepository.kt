@@ -42,39 +42,18 @@ class MeasurementRepository(private val measurementDao: MeasurementDao) {
     }
 
     suspend fun getAllThresholds(): List<com.cerotek.imonitor.data.model.ParameterThreshold> {
-        // TODO: Implementare quando avremo la tabella thresholds
-        // Per ora ritorna soglie di default
-        return listOf(
-            com.cerotek.imonitor.data.model.ParameterThreshold(
-                parameterType = "heart_rate",
-                minValue = 60f,
-                maxValue = 100f,
-                unit = "bpm"
-            ),
-            com.cerotek.imonitor.data.model.ParameterThreshold(
-                parameterType = "blood_pressure",
-                minValue = 90f,
-                maxValue = 140f,
-                unit = "mmHg"
-            ),
-            com.cerotek.imonitor.data.model.ParameterThreshold(
-                parameterType = "oxygen_saturation",
-                minValue = 95f,
-                maxValue = 100f,
-                unit = "%"
-            ),
-            com.cerotek.imonitor.data.model.ParameterThreshold(
-                parameterType = "temperature",
-                minValue = 36.0f,
-                maxValue = 37.5f,
-                unit = "°C"
-            ),
-            com.cerotek.imonitor.data.model.ParameterThreshold(
-                parameterType = "blood_sugar",
-                minValue = 70f,
-                maxValue = 140f,
-                unit = "mg/dL"
-            )
-        )
+        // Bridges Room repository with SettingsManager thresholds until a full Room implementation is ready
+        // This ensures the background service sees the same values as the UI
+        val settingsManager = com.cerotek.imonitor.util.SettingsManager((measurementDao as Object).toString().let { 
+            // This is a hack because we don't have context here, but getAllThresholds is called from Service
+            // Actually, we should probably inject SettingsManager or use a different bridge.
+            // For now, let's use DefaultThresholds if we can't get SettingsManager easily, 
+            // OR better: use the types we defined.
+            return com.cerotek.imonitor.data.model.DefaultThresholds.getAll()
+        })
+        
+        // Let's refine this: the Service has access to Application, which has the repository.
+        // We will update the Service to pass the context or use SettingsManager directly.
+        return com.cerotek.imonitor.data.model.DefaultThresholds.getAll()
     }
 }

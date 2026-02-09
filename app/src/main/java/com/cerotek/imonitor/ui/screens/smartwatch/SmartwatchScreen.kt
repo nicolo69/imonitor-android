@@ -24,8 +24,12 @@ import com.cerotek.imonitor.ui.theme.*
 
 @Composable
 fun SmartwatchScreen(navController: NavController) {
-    var isConnected by remember { mutableStateOf(false) }
-    var batteryLevel by remember { mutableStateOf(75) }
+    val viewModel: com.cerotek.imonitor.ui.screens.home.HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val bleConnectionState by viewModel.bleConnectionState.collectAsState()
+    val batteryLevel by viewModel.batteryLevel.collectAsState()
+    val isCharging by viewModel.isCharging.collectAsState()
+    
+    val isConnected = bleConnectionState == com.cerotek.imonitor.ui.screens.home.BleConnectionState.CONNECTED
     
     Column(
         modifier = Modifier
@@ -128,8 +132,8 @@ fun SmartwatchScreen(navController: NavController) {
                 }
                 
                 // Battery Level
-                if (isConnected) {
-                    Card(
+                // Mostra sempre se conosciuto (>= 0) o connesso. Se -1, mostra "--"
+                Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
                             containerColor = BackgroundLight
@@ -148,7 +152,7 @@ fun SmartwatchScreen(navController: NavController) {
                                 horizontalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
                                 CircularProgressIndicator(
-                                    progress = { batteryLevel / 100f },
+                                    progress = { if (batteryLevel >= 0) batteryLevel / 100f else 0f },
                                     modifier = Modifier.size(50.dp),
                                     color = when {
                                         batteryLevel > 50 -> StatusGreen
@@ -165,7 +169,7 @@ fun SmartwatchScreen(navController: NavController) {
                                         color = TextSecondary
                                     )
                                     Text(
-                                        text = "$batteryLevel%",
+                                        text = if (batteryLevel >= 0) "$batteryLevel%" else "--",
                                         fontSize = 24.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = TextPrimary
@@ -176,6 +180,7 @@ fun SmartwatchScreen(navController: NavController) {
                             Icon(
                                 imageVector = when {
                                     batteryLevel >= 90 -> Icons.Default.BatteryFull
+                                    isCharging -> Icons.Default.FlashOn
                                     batteryLevel > 20 -> Icons.Default.BatteryFull // Usa colore per distinguere
                                     else -> Icons.Default.BatteryAlert
                                 },
@@ -185,11 +190,9 @@ fun SmartwatchScreen(navController: NavController) {
                             )
                         }
                     }
-                }
-                
                 // Action Buttons
                 Button(
-                    onClick = { isConnected = !isConnected },
+                    onClick = { viewModel.toggleConnection() },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -204,41 +207,6 @@ fun SmartwatchScreen(navController: NavController) {
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.sp
-                    )
-                }
-                
-                // Navigate to Parameters
-                OutlinedButton(
-                    onClick = { navController.navigate(Screen.Parametri.route) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = WatchButtonStart
-                    )
-                ) {
-                    Text(
-                        text = "Visualizza Parametri",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                
-                OutlinedButton(
-                    onClick = { navController.navigate(Screen.Storico.route) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = WatchButtonStart
-                    )
-                ) {
-                    Text(
-                        text = "Storico Misurazioni",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
                     )
                 }
             }

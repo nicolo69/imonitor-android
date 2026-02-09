@@ -1,11 +1,13 @@
 package com.cerotek.imonitor.ui.screens.home
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -16,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -25,6 +28,9 @@ import com.cerotek.imonitor.R
 import com.cerotek.imonitor.ble.model.AllDataBean
 import com.cerotek.imonitor.ui.navigation.Screen
 import com.cerotek.imonitor.ui.theme.*
+import com.cerotek.imonitor.ui.login.LoginActivity
+import android.content.Intent
+import android.app.Activity
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,6 +52,8 @@ fun HomeScreen(navController: NavController) {
     val bleConnectionState by viewModel.bleConnectionState.collectAsState()
     val latestMeasurements by viewModel.latestMeasurements.collectAsState()
     val parameterStatuses by viewModel.parameterStatuses.collectAsState()
+    val batteryLevel by viewModel.batteryLevel.collectAsState()
+    val isCharging by viewModel.isCharging.collectAsState()
     var showBleAlert by remember { mutableStateOf(true) }
     
     ModalNavigationDrawer(
@@ -53,9 +61,20 @@ fun HomeScreen(navController: NavController) {
         drawerContent = {
             DrawerContent(
                 userInfo = userInfo,
+                bleConnectionState = bleConnectionState,
+                batteryLevel = batteryLevel,
+                isCharging = isCharging,
+                onToggleConnection = { viewModel.toggleConnection() },
                 onNavigate = { route ->
                     navController.navigate(route)
                     scope.launch { drawerState.close() }
+                },
+                onLogout = {
+                    securePrefs.clearAll()
+                    val intent = Intent(context, LoginActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    context.startActivity(intent)
+                    (context as? Activity)?.finish()
                 }
             )
         }
@@ -393,7 +412,12 @@ fun BleConnectionAlert(
 @Composable
 fun DrawerContent(
     userInfo: com.cerotek.imonitor.util.SecurePreferences.UserInfo?,
-    onNavigate: (String) -> Unit
+    bleConnectionState: BleConnectionState,
+    batteryLevel: Int,
+    isCharging: Boolean,
+    onToggleConnection: () -> Unit,
+    onNavigate: (String) -> Unit,
+    onLogout: () -> Unit
 ) {
     ModalDrawerSheet(
         drawerContainerColor = Color.White
@@ -472,15 +496,15 @@ fun DrawerContent(
                 )
                 
                 DrawerMenuItem(
-                    icon = Icons.Default.WatchLater,
-                    title = "Smartwatch",
-                    onClick = { onNavigate(Screen.Smartwatch.route) }
-                )
-                
-                DrawerMenuItem(
                     icon = Icons.Default.History,
                     title = "Storico",
                     onClick = { onNavigate(Screen.Storico.route) }
+                )
+                
+                DrawerMenuItem(
+                    icon = Icons.Default.WatchLater,
+                    title = "Smartwatch",
+                    onClick = { onNavigate(Screen.Smartwatch.route) }
                 )
                 
                 Divider(modifier = Modifier.padding(vertical = 16.dp))
@@ -510,6 +534,20 @@ fun DrawerContent(
                     icon = Icons.Default.Update,
                     title = "Aggiornamenti",
                     onClick = { onNavigate(Screen.Updates.route) }
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Divider(modifier = Modifier.padding(vertical = 16.dp))
+
+                DrawerMenuItem(
+                    icon = Icons.Default.ExitToApp,
+                    title = "Logout",
+                    onClick = onLogout,
+                    colors = NavigationDrawerItemDefaults.colors(
+                        unselectedIconColor = StatusYellow,
+                        unselectedTextColor = StatusYellow
+                    )
                 )
             }
             
@@ -541,7 +579,11 @@ fun DrawerContent(
 fun DrawerMenuItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    colors: NavigationDrawerItemColors = NavigationDrawerItemDefaults.colors(
+        unselectedContainerColor = Color.Transparent,
+        selectedContainerColor = PrimaryBlue.copy(alpha = 0.1f)
+    )
 ) {
     NavigationDrawerItem(
         icon = { Icon(icon, contentDescription = title) },
@@ -549,10 +591,7 @@ fun DrawerMenuItem(
         selected = false,
         onClick = onClick,
         modifier = Modifier.padding(vertical = 4.dp),
-        colors = NavigationDrawerItemDefaults.colors(
-            unselectedContainerColor = Color.Transparent,
-            selectedContainerColor = PrimaryBlue.copy(alpha = 0.1f)
-        )
+        colors = colors
     )
 }
 
@@ -691,6 +730,18 @@ fun BigParameterCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    // Animazione pulsante per ALERT
+    val infiniteTransition = rememberInfiniteTransition(label = "alert_pulse")
+    val alpha = infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = if (parameter.status == ParameterStatus.ALERT) 0.4f else 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alpha_animation"
+    )
+    
     // Determina il gradiente in base allo stato o al tipo
     val gradientColors = when (parameter.status) {
         ParameterStatus.ALERT -> listOf(RedGradientStart, RedGradientEnd)
@@ -722,7 +773,10 @@ fun BigParameterCard(
             .shadow(
                 elevation = if (parameter.status == ParameterStatus.NORMAL) 4.dp else 8.dp,
                 shape = RoundedCornerShape(20.dp)
-            ),
+            )
+            .graphicsLayer {
+                this.alpha = if (parameter.status == ParameterStatus.ALERT) alpha.value else 1f
+            },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.Transparent

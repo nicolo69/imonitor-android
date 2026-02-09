@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.cerotek.imonitor.IMonitorApplication
 import com.cerotek.imonitor.ble.WatchMonitor
 import com.cerotek.imonitor.ble.model.AllDataBean
+import com.cerotek.imonitor.data.model.ParameterTypes
 import com.cerotek.imonitor.ble.model.WatchState
 import com.cerotek.imonitor.data.local.entity.MeasurementEntity
 import com.cerotek.imonitor.util.SettingsManager
@@ -30,6 +31,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     // Parameter statuses
     private val _parameterStatuses = MutableStateFlow<Map<String, ParameterStatus>>(emptyMap())
     val parameterStatuses: StateFlow<Map<String, ParameterStatus>> = _parameterStatuses.asStateFlow()
+    
+    // Battery and Watch Info
+    val batteryLevel: StateFlow<Int> = watchMonitor.batteryLevel()
+    val isCharging: StateFlow<Boolean> = watchMonitor.isCharging()
     
     init {
         watchMonitor.init()
@@ -93,7 +98,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         val statuses = mutableMapOf<String, ParameterStatus>()
         
         // Heart Rate
-        val heartRateThreshold = settingsManager.getThreshold("heart_rate")
+        val heartRateThreshold = settingsManager.getThreshold(ParameterTypes.HEART_RATE)
         statuses["heart_rate"] = when {
             data.heartRate < heartRateThreshold.minValue -> ParameterStatus.WARNING
             data.heartRate > heartRateThreshold.maxValue -> ParameterStatus.ALERT
@@ -101,17 +106,18 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
         
         // Blood Pressure
-        val pressureThreshold = settingsManager.getThreshold("blood_pressure")
+        val sysThreshold = settingsManager.getThreshold(ParameterTypes.BLOOD_PRESSURE_SYSTOLIC)
+        val diaThreshold = settingsManager.getThreshold(ParameterTypes.BLOOD_PRESSURE_DIASTOLIC)
         statuses["blood_pressure"] = when {
-            data.systolic < pressureThreshold.minValue || data.diastolic < pressureThreshold.minValue -> 
+            data.systolic < sysThreshold.minValue || data.diastolic < diaThreshold.minValue -> 
                 ParameterStatus.WARNING
-            data.systolic > pressureThreshold.maxValue || data.diastolic > pressureThreshold.maxValue -> 
+            data.systolic > sysThreshold.maxValue || data.diastolic > diaThreshold.maxValue -> 
                 ParameterStatus.ALERT
             else -> ParameterStatus.NORMAL
         }
         
         // Oxygen Saturation
-        val saturationThreshold = settingsManager.getThreshold("oxygen_saturation")
+        val saturationThreshold = settingsManager.getThreshold(ParameterTypes.OXYGEN_SATURATION)
         statuses["oxygen_saturation"] = when {
             data.oxygenSaturation < saturationThreshold.minValue -> ParameterStatus.ALERT
             data.oxygenSaturation < saturationThreshold.maxValue -> ParameterStatus.WARNING
@@ -119,7 +125,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
         
         // Temperature
-        val temperatureThreshold = settingsManager.getThreshold("temperature")
+        val temperatureThreshold = settingsManager.getThreshold(ParameterTypes.TEMPERATURE)
         statuses["temperature"] = when {
             data.bodyTemperature < temperatureThreshold.minValue -> ParameterStatus.WARNING
             data.bodyTemperature > temperatureThreshold.maxValue -> ParameterStatus.ALERT
@@ -127,7 +133,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
         
         // Blood Sugar
-        val bloodSugarThreshold = settingsManager.getThreshold("blood_sugar")
+        val bloodSugarThreshold = settingsManager.getThreshold(ParameterTypes.BLOOD_SUGAR)
         statuses["blood_sugar"] = when {
             data.bloodSugarFloat < bloodSugarThreshold.minValue -> ParameterStatus.WARNING
             data.bloodSugarFloat > bloodSugarThreshold.maxValue -> ParameterStatus.ALERT
@@ -136,7 +142,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         
         // Body Fat (using bodyFatInt + bodyFatFloat/10)
         val bodyFat = data.bodyFatInt + (data.bodyFatFloat / 10f)
-        val bodyFatThreshold = settingsManager.getThreshold("body_fat")
+        val bodyFatThreshold = settingsManager.getThreshold(ParameterTypes.BODY_FAT)
         statuses["body_fat"] = when {
             bodyFat < bodyFatThreshold.minValue -> ParameterStatus.WARNING
             bodyFat > bodyFatThreshold.maxValue -> ParameterStatus.WARNING
@@ -144,6 +150,14 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
         
         _parameterStatuses.value = statuses
+    }
+    
+    fun toggleConnection() {
+        if (_bleConnectionState.value == BleConnectionState.CONNECTED) {
+            watchMonitor.disconnect()
+        } else {
+            watchMonitor.scan()
+        }
     }
     
     fun connectToWatch(macAddress: String) {

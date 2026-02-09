@@ -270,7 +270,12 @@ fun CerotekBrandingSection() {
             Surface(
                 shape = CircleShape,
                 color = Color.White,
-                modifier = Modifier.size(100.dp),
+                modifier = Modifier
+                    .size(100.dp)
+                    .clickable {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.cerotek.it/"))
+                        context.startActivity(intent)
+                    },
                 shadowElevation = 4.dp
             ) {
                 Box(contentAlignment = Alignment.Center) {

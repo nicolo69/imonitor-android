@@ -32,6 +32,15 @@ class SettingsManager(private val context: Context) {
     fun setNotificationsEnabled(enabled: Boolean) {
         sharedPreferences.edit().putBoolean("notifications_enabled", enabled).apply()
     }
+
+    fun setThreshold(threshold: ParameterThreshold) {
+        sharedPreferences.edit().apply {
+            putFloat("${threshold.parameterType}_min", threshold.minValue)
+            putFloat("${threshold.parameterType}_max", threshold.maxValue)
+            putString("${threshold.parameterType}_unit", threshold.unit)
+            apply()
+        }
+    }
     
     fun getUpdateInterval(): Long {
         return sharedPreferences.getLong("update_interval", 60000L) // 1 minute default
@@ -47,51 +56,23 @@ class SettingsManager(private val context: Context) {
     }
     
     fun getThreshold(parameterType: String): ParameterThreshold {
-        // Default thresholds - questi possono essere sovrascritti dalle impostazioni
-        return when (parameterType.lowercase()) {
-            "pressure", "pressione" -> ParameterThreshold(
-                parameterType = parameterType,
-                minValue = 90f,
-                maxValue = 140f,
-                unit = "mmHg"
-            )
-            "saturation", "saturazione" -> ParameterThreshold(
-                parameterType = parameterType,
-                minValue = 95f,
-                maxValue = 100f,
-                unit = "%"
-            )
-            "heartrate", "frequenza" -> ParameterThreshold(
-                parameterType = parameterType,
-                minValue = 60f,
-                maxValue = 100f,
-                unit = "bpm"
-            )
-            "temperature", "temperatura" -> ParameterThreshold(
-                parameterType = parameterType,
-                minValue = 36.0f,
-                maxValue = 37.5f,
-                unit = "°C"
-            )
-            "glucose", "glicemia" -> ParameterThreshold(
-                parameterType = parameterType,
-                minValue = 70f,
-                maxValue = 140f,
-                unit = "mg/dL"
-            )
-            "bodyfat", "grassi" -> ParameterThreshold(
-                parameterType = parameterType,
-                minValue = 10f,
-                maxValue = 30f,
-                unit = "%"
-            )
-            else -> ParameterThreshold(
-                parameterType = parameterType,
-                minValue = 0f,
-                maxValue = 100f,
-                unit = ""
-            )
+        val default = when (parameterType) {
+            ParameterTypes.HEART_RATE -> DefaultThresholds.HEART_RATE
+            ParameterTypes.BLOOD_PRESSURE_SYSTOLIC -> DefaultThresholds.BLOOD_PRESSURE_SYSTOLIC
+            ParameterTypes.BLOOD_PRESSURE_DIASTOLIC -> DefaultThresholds.BLOOD_PRESSURE_DIASTOLIC
+            ParameterTypes.OXYGEN_SATURATION -> DefaultThresholds.OXYGEN
+            ParameterTypes.TEMPERATURE -> DefaultThresholds.TEMPERATURE
+            ParameterTypes.BLOOD_SUGAR -> DefaultThresholds.GLUCOSE
+            ParameterTypes.BODY_FAT -> DefaultThresholds.BODY_FAT
+            else -> ParameterThreshold(parameterType, 0f, 100f, "")
         }
+
+        return ParameterThreshold(
+            parameterType = parameterType,
+            minValue = sharedPreferences.getFloat("${parameterType}_min", default.minValue),
+            maxValue = sharedPreferences.getFloat("${parameterType}_max", default.maxValue),
+            unit = sharedPreferences.getString("${parameterType}_unit", default.unit) ?: default.unit
+        )
     }
     
     // Metodi per gestione allarmi

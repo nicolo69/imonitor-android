@@ -7,14 +7,24 @@ data class ParameterThreshold(
     val unit: String
 )
 
+object ParameterTypes {
+    const val HEART_RATE = "heart_rate"
+    const val BLOOD_PRESSURE_SYSTOLIC = "blood_pressure_systolic"
+    const val BLOOD_PRESSURE_DIASTOLIC = "blood_pressure_diastolic"
+    const val OXYGEN_SATURATION = "oxygen_saturation"
+    const val TEMPERATURE = "temperature"
+    const val BLOOD_SUGAR = "blood_sugar"
+    const val BODY_FAT = "body_fat"
+}
+
 object DefaultThresholds {
-    val HEART_RATE = ParameterThreshold("heart_rate", 60f, 100f, "bpm")
-    val BLOOD_PRESSURE_SYSTOLIC = ParameterThreshold("blood_pressure_sys", 90f, 140f, "mmHg")
-    val BLOOD_PRESSURE_DIASTOLIC = ParameterThreshold("blood_pressure_dia", 60f, 90f, "mmHg")
-    val OXYGEN = ParameterThreshold("oxygen", 95f, 100f, "%")
-    val TEMPERATURE = ParameterThreshold("temperature", 36.0f, 37.5f, "°C")
-    val GLUCOSE = ParameterThreshold("glucose", 70f, 140f, "mg/dL")
-    val SATURATION = ParameterThreshold("saturation", 94f, 100f, "%")
+    val HEART_RATE = ParameterThreshold(ParameterTypes.HEART_RATE, 60f, 100f, "bpm")
+    val BLOOD_PRESSURE_SYSTOLIC = ParameterThreshold(ParameterTypes.BLOOD_PRESSURE_SYSTOLIC, 90f, 140f, "mmHg")
+    val BLOOD_PRESSURE_DIASTOLIC = ParameterThreshold(ParameterTypes.BLOOD_PRESSURE_DIASTOLIC, 60f, 90f, "mmHg")
+    val OXYGEN = ParameterThreshold(ParameterTypes.OXYGEN_SATURATION, 95f, 100f, "%")
+    val TEMPERATURE = ParameterThreshold(ParameterTypes.TEMPERATURE, 36.0f, 37.5f, "°C")
+    val GLUCOSE = ParameterThreshold(ParameterTypes.BLOOD_SUGAR, 70f, 140f, "mg/dL")
+    val BODY_FAT = ParameterThreshold(ParameterTypes.BODY_FAT, 10f, 30f, "%")
     
     fun getAll(): List<ParameterThreshold> {
         return listOf(
@@ -24,7 +34,7 @@ object DefaultThresholds {
             OXYGEN,
             TEMPERATURE,
             GLUCOSE,
-            SATURATION
+            BODY_FAT
         )
     }
 }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -42,36 +43,56 @@ fun SettingsScreen(navController: NavController) {
     var isDarkTheme by remember { mutableStateOf(sharedPrefs.getBoolean("dark_theme", false)) }
     
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { 
-                    Text(
-                        "Impostazioni",
-                        fontWeight = FontWeight.Bold
-                    ) 
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, "Indietro")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PrimaryBlue,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
-                )
-            )
-        }
+        // topBar rimosso per usare header custom
+
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .background(BackgroundLight)
-                .verticalScroll(rememberScrollState())
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Header Custom con Gradiente
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            listOf(PrimaryBlue, PrimaryBlueDark)
+                        )
+                    )
+                    .padding(24.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    IconButton(
+                        onClick = { navController.navigateUp() },
+                        colors = IconButtonDefaults.iconButtonColors(
+                            contentColor = Color.White,
+                            containerColor = Color.White.copy(alpha = 0.2f)
+                        )
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Indietro")
+                    }
+                    
+                    Text(
+                        "Impostazioni",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+            }
+            
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
             // Logo Cerotek e Social Media
             CerotekBrandingSection()
             
@@ -218,7 +239,7 @@ fun SettingsScreen(navController: NavController) {
             // Smartwatch Button
             NavigationButton(
                 title = "Smartwatch",
-                icon = Icons.Default.Watch,
+                icon = Icons.Default.WatchLater,
                 gradient = listOf(WatchButtonStart, WatchButtonEnd),
                 onClick = { navController.navigate(Screen.Smartwatch.route) }
             )
@@ -227,73 +248,91 @@ fun SettingsScreen(navController: NavController) {
         }
     }
 }
-
+}
 @Composable
 fun CerotekBrandingSection() {
     val context = LocalContext.current
     
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(4.dp)
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = PrimaryBlueDark), // Scuro per contrasto premium
+        elevation = CardDefaults.cardElevation(8.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
+                .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Logo Cerotek
-            Image(
-                painter = painterResource(id = R.drawable.ic_logo),
-                contentDescription = "Cerotek Logo",
-                modifier = Modifier.size(150.dp)
-            )
-            
-            Text(
-                "Seguici sui Social",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
-            )
-            
-            // Social Media Icons
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
+            // Logo Cerotek su sfondo bianco circolare
+            Surface(
+                shape = CircleShape,
+                color = Color.White,
+                modifier = Modifier.size(100.dp),
+                shadowElevation = 4.dp
             ) {
-                // Instagram
-                InstagramIcon(
-                    onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.instagram.com/cerotek"))
-                        context.startActivity(intent)
-                    }
-                )
-                
-                // LinkedIn
-                LinkedInIcon(
-                    onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.linkedin.com/company/cerotek"))
-                        context.startActivity(intent)
-                    }
-                )
-                
-                // WhatsApp
-                WhatsAppIcon(
-                    onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/393123456789"))
-                        context.startActivity(intent)
-                    }
-                )
+                Box(contentAlignment = Alignment.Center) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_logo),
+                        contentDescription = "Cerotek Logo",
+                        modifier = Modifier.size(64.dp)
+                    )
+                }
             }
+            
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    "SEGUICI SUI SOCIAL",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White.copy(alpha = 0.7f),
+                    letterSpacing = 1.sp
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                // Social Media Icons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Instagram
+                    InstagramIcon(
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.instagram.com/cerotek"))
+                            context.startActivity(intent)
+                        }
+                    )
+                    
+                    Spacer(modifier = Modifier.width(24.dp))
+                    
+                    // LinkedIn
+                    LinkedInIcon(
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.linkedin.com/company/cerotek"))
+                            context.startActivity(intent)
+                        }
+                    )
+                    
+                    Spacer(modifier = Modifier.width(24.dp))
+                    
+                    // WhatsApp
+                    WhatsAppIcon(
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/393123456789"))
+                            context.startActivity(intent)
+                        }
+                    )
+                }
+            }
+            
+            HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
             
             Text(
                 "Cerotek © 2026",
                 fontSize = 12.sp,
-                color = TextSecondary
+                color = Color.White.copy(alpha = 0.6f)
             )
         }
     }

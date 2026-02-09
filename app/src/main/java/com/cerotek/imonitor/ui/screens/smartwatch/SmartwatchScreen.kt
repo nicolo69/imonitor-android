@@ -3,10 +3,12 @@ package com.cerotek.imonitor.ui.screens.smartwatch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -67,34 +69,58 @@ fun SmartwatchScreen(navController: NavController) {
                 
                 HorizontalDivider(color = Color.LightGray, thickness = 1.dp)
                 
-                // Connection Status
-                Card(
+                // Hero Section - Connection Status
+                Box(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (isConnected) StatusGreen.copy(alpha = 0.1f) 
-                                        else StatusRed.copy(alpha = 0.1f)
-                    ),
-                    shape = RoundedCornerShape(12.dp)
+                    contentAlignment = Alignment.Center
                 ) {
-                    Row(
-                        modifier = Modifier.padding(20.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    val statusColor = if (isConnected) StatusGreen else StatusRed
+                    val statusIcon = if (isConnected) Icons.Default.WatchLater else Icons.Default.BluetoothDisabled
+                    
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Text(
-                            text = if (isConnected) "✅" else "❌",
-                            fontSize = 40.sp
-                        )
-                        Column {
+                        // Big Circle Visualization
+                        Surface(
+                            shape = CircleShape,
+                            color = statusColor.copy(alpha = 0.1f),
+                            modifier = Modifier.size(200.dp),
+                            shadowElevation = 0.dp
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                // Inner Circle
+                                Surface(
+                                    shape = CircleShape,
+                                    color = statusColor.copy(alpha = 0.2f),
+                                    modifier = Modifier.size(150.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            imageVector = statusIcon,
+                                            contentDescription = null,
+                                            tint = statusColor,
+                                            modifier = Modifier.size(80.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                text = if (isConnected) "Connesso" else "Disconnesso",
-                                fontSize = 22.sp,
+                                text = if (isConnected) "CONNESSO" else "DISCONNESSO",
+                                fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (isConnected) StatusGreen else StatusRed
+                                color = statusColor,
+                                letterSpacing = 2.sp
                             )
                             Text(
-                                text = if (isConnected) "Dispositivo collegato" else "Nessun dispositivo",
-                                fontSize = 16.sp,
+                                text = if (isConnected) "Dispositivo Cerotek V1" else "Nessun dispositivo rilevato",
+                                fontSize = 14.sp,
                                 color = TextSecondary
                             )
                         }
@@ -108,48 +134,54 @@ fun SmartwatchScreen(navController: NavController) {
                         colors = CardDefaults.cardColors(
                             containerColor = BackgroundLight
                         ),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(16.dp)
                     ) {
-                        Column(
-                            modifier = Modifier.padding(20.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                Text("🔋", fontSize = 32.sp)
-                                Text(
-                                    text = "Batteria",
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = TextPrimary
+                                CircularProgressIndicator(
+                                    progress = { batteryLevel / 100f },
+                                    modifier = Modifier.size(50.dp),
+                                    color = when {
+                                        batteryLevel > 50 -> StatusGreen
+                                        batteryLevel > 20 -> StatusYellow
+                                        else -> StatusRed
+                                    },
+                                    trackColor = Color.LightGray
                                 )
+                                Column {
+                                    Text(
+                                        text = "BATTERIA",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextSecondary
+                                    )
+                                    Text(
+                                        text = "$batteryLevel%",
+                                        fontSize = 24.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextPrimary
+                                    )
+                                }
                             }
                             
-                            Text(
-                                text = "$batteryLevel%",
-                                fontSize = 48.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = when {
-                                    batteryLevel > 50 -> StatusGreen
-                                    batteryLevel > 20 -> StatusYellow
-                                    else -> StatusRed
-                                }
-                            )
-                            
-                            LinearProgressIndicator(
-                                progress = { batteryLevel / 100f },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(12.dp),
-                                color = when {
-                                    batteryLevel > 50 -> StatusGreen
-                                    batteryLevel > 20 -> StatusYellow
-                                    else -> StatusRed
+                            Icon(
+                                imageVector = when {
+                                    batteryLevel >= 90 -> Icons.Default.BatteryFull
+                                    batteryLevel > 20 -> Icons.Default.BatteryFull // Usa colore per distinguere
+                                    else -> Icons.Default.BatteryAlert
                                 },
-                                trackColor = Color.LightGray,
-                                strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+                                contentDescription = null,
+                                tint = TextSecondary,
+                                modifier = Modifier.size(32.dp)
                             )
                         }
                     }
@@ -164,12 +196,14 @@ fun SmartwatchScreen(navController: NavController) {
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isConnected) StatusRed else WatchButtonStart
                     ),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = ButtonDefaults.buttonElevation(6.dp)
                 ) {
                     Text(
-                        text = if (isConnected) "Disconnetti" else "Connetti Dispositivo",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
+                        text = if (isConnected) "DISCONNETTI" else "CONNETTI DISPOSITIVO",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp
                     )
                 }
                 

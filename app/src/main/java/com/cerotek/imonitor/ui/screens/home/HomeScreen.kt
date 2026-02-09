@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -94,7 +95,11 @@ fun HomeScreen(navController: NavController) {
                 FloatingActionButton(
                     onClick = { showPatientDialog = true },
                     containerColor = PrimaryBlue,
-                    contentColor = Color.White
+                    contentColor = Color.White,
+                    elevation = FloatingActionButtonDefaults.elevation(
+                        defaultElevation = 8.dp,
+                        pressedElevation = 2.dp
+                    )
                 ) {
                     Icon(Icons.Default.Person, contentDescription = "Info Paziente")
                 }
@@ -467,7 +472,7 @@ fun DrawerContent(
                 )
                 
                 DrawerMenuItem(
-                    icon = Icons.Default.Watch,
+                    icon = Icons.Default.WatchLater,
                     title = "Smartwatch",
                     onClick = { onNavigate(Screen.Smartwatch.route) }
                 )
@@ -686,94 +691,107 @@ fun BigParameterCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    val backgroundColor = when (parameter.status) {
-        ParameterStatus.NORMAL -> Color.White
-        ParameterStatus.WARNING -> Color(0xFFFFEB3B)  // Yellow
-        ParameterStatus.ALERT -> Color(0xFFFF5252)    // Red
+    // Determina il gradiente in base allo stato o al tipo
+    val gradientColors = when (parameter.status) {
+        ParameterStatus.ALERT -> listOf(RedGradientStart, RedGradientEnd)
+        ParameterStatus.WARNING -> listOf(YellowGradientStart, YellowGradientEnd)
+        ParameterStatus.NORMAL -> when (parameter.type) {
+            "heart_rate", "blood_pressure" -> listOf(Color(0xFFFFF0F0), Color(0xFFFFEBEB)) // Light Red
+            "oxygen_saturation", "temperature" -> listOf(Color(0xFFE8F5E9), Color(0xFFC8E6C9)) // Light Green
+            "blood_sugar", "body_fat" -> listOf(Color(0xFFFFF8E1), Color(0xFFFFECB3)) // Light Orange
+            else -> listOf(Color.White, Color(0xFFF5F5F5))
+        }
     }
     
     val textColor = when (parameter.status) {
-        ParameterStatus.NORMAL -> TextPrimary
-        ParameterStatus.WARNING -> Color(0xFF333333)
         ParameterStatus.ALERT -> Color.White
+        ParameterStatus.WARNING -> Color(0xFF5D4037) // Dark Brown for contrast on yellow
+        ParameterStatus.NORMAL -> TextPrimary
+    }
+    
+    val iconTint = when (parameter.status) {
+        ParameterStatus.ALERT -> Color.White
+        ParameterStatus.WARNING -> Color(0xFF5D4037)
+        ParameterStatus.NORMAL -> PrimaryBlue
     }
     
     Card(
         onClick = onClick,
-        modifier = modifier.height(180.dp),
-        shape = RoundedCornerShape(16.dp),
+        modifier = modifier
+            .height(160.dp) // Leggermente più compatto
+            .shadow(
+                elevation = if (parameter.status == ParameterStatus.NORMAL) 4.dp else 8.dp,
+                shape = RoundedCornerShape(20.dp)
+            ),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = backgroundColor
-        ),
-        elevation = CardDefaults.cardElevation(4.dp)
+            containerColor = Color.Transparent
+        )
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(12.dp),
+                .background(
+                    brush = Brush.verticalGradient(gradientColors)
+                )
+                .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.SpaceBetween, // Spazia meglio gli elementi
                 modifier = Modifier.fillMaxSize()
             ) {
-                // Nome parametro
-                Text(
-                    parameter.name,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor,
-                    textAlign = TextAlign.Center,
-                    lineHeight = 18.sp
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // Icona se presente
-                if (parameter.iconRes != null) {
-                    androidx.compose.foundation.Image(
-                        painter = androidx.compose.ui.res.painterResource(id = parameter.iconRes),
-                        contentDescription = parameter.name,
-                        modifier = Modifier.size(48.dp),
-                        contentScale = androidx.compose.ui.layout.ContentScale.Fit,
-                        colorFilter = if (parameter.status == ParameterStatus.ALERT) {
-                            androidx.compose.ui.graphics.ColorFilter.tint(Color.White)
-                        } else null
+                // Header: Icona e Nome
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    if (parameter.iconRes != null) {
+                        Icon(
+                            painter = androidx.compose.ui.res.painterResource(id = parameter.iconRes),
+                            contentDescription = null,
+                            tint = iconTint,
+                            modifier = Modifier.size(48.dp)
+                        )
+                    } else if (parameter.type == "heart_rate") {
+                         Icon(
+                            imageVector = Icons.Default.Favorite,
+                            contentDescription = null,
+                            tint = iconTint,
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        parameter.name.replace("\n", " "), // Su una riga se possibile
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor.copy(alpha = 0.8f),
+                        textAlign = TextAlign.Center,
+                        maxLines = 2
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // Valore e unità
-                if (parameter.value.isNotEmpty() && parameter.value != "--") {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.Bottom
-                    ) {
-                        Text(
-                            text = parameter.value,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = textColor
-                        )
-                        if (parameter.unit.isNotEmpty()) {
-                            Text(
-                                text = parameter.unit,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = textColor.copy(alpha = 0.8f),
-                                modifier = Modifier.padding(bottom = 2.dp)
-                            )
-                        }
-                    }
-                } else {
+                // Valore
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.Bottom
+                ) {
                     Text(
-                        text = "N/D",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textColor.copy(alpha = 0.6f)
+                        text = if (parameter.value != "--") parameter.value else "--",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = textColor
                     )
+                    if (parameter.unit.isNotEmpty()) {
+                        Text(
+                            text = parameter.unit,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = textColor.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(bottom = 6.dp, start = 2.dp)
+                        )
+                    }
                 }
             }
         }

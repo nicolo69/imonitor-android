@@ -66,7 +66,8 @@ class LoginActivity : ComponentActivity() {
         }
         
         observeViewModel()
-        checkAutoLogin()
+        observeViewModel()
+        // checkAutoLogin() // Disabilitato login automatico su richiesta utente
     }
 
     private fun observeViewModel() {
@@ -130,6 +131,8 @@ fun LoginScreen(
     val focusManager = LocalFocusManager.current
     
     // Load saved credentials
+    // Load saved credentials - RIMOSSO per richiesta utente (vuole inserire lui i dati)
+    /*
     LaunchedEffect(Unit) {
         val credentials = securePrefs.getCredentials()
         if (credentials != null) {
@@ -137,6 +140,7 @@ fun LoginScreen(
             password = credentials.second
         }
     }
+    */
     
     // Handle login state
     LaunchedEffect(loginState) {
@@ -164,18 +168,17 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 32.dp, vertical = 48.dp),
+                .padding(horizontal = 32.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+            // Centra verticalmente il contenuto se c'è spazio
+            verticalArrangement = Arrangement.Center
         ) {
             Spacer(modifier = Modifier.height(40.dp))
             
-            // Logo Cerotek
-            androidx.compose.foundation.Image(
-                painter = androidx.compose.ui.res.painterResource(id = com.cerotek.imonitor.R.drawable.ic_logo),
-                contentDescription = "Cerotek Logo",
+            // Logo Cerotek con ombra leggera
+            Surface(
                 modifier = Modifier
-                    .size(120.dp)
+                    .size(130.dp)
                     .clickable {
                         debugTapCount++
                         if (debugTapCount >= 5) {
@@ -186,8 +189,20 @@ fun LoginScreen(
                             debugTapCount = 0
                         }
                     },
-                contentScale = androidx.compose.ui.layout.ContentScale.Fit
-            )
+                shape = androidx.compose.foundation.shape.CircleShape,
+                color = Color.White,
+                shadowElevation = 8.dp
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    androidx.compose.foundation.Image(
+                        painter = androidx.compose.ui.res.painterResource(id = com.cerotek.imonitor.R.drawable.ic_logo),
+                        contentDescription = "Cerotek Logo",
+                        modifier = Modifier
+                            .size(90.dp), // Logo leggermente più piccolo nel cerchio bianco
+                        contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                    )
+                }
+            }
             
             Spacer(modifier = Modifier.height(32.dp))
             
@@ -224,20 +239,20 @@ fun LoginScreen(
                     modifier = Modifier.padding(24.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Username label
-                    Text(
-                        text = "Username",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color(0xFF333333)
-                    )
-                    
-                    // Username Field
-                    TextField(
+                    // Username Field Moderno
+                    OutlinedTextField(
                         value = username,
                         onValueChange = { username = it },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null,
+                                tint = PrimaryBlue
+                            )
+                        },
+                        label = { Text("Username") },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Text,
                             imeAction = ImeAction.Next
@@ -245,33 +260,33 @@ fun LoginScreen(
                         keyboardActions = KeyboardActions(
                             onNext = { focusManager.moveFocus(FocusDirection.Down) }
                         ),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = TextFieldDefaults.colors(
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = PrimaryBlue,
+                            unfocusedBorderColor = Color.Transparent,
                             focusedContainerColor = Color(0xFFE3F2FD),
-                            unfocusedContainerColor = Color(0xFFE3F2FD),
-                            disabledContainerColor = Color(0xFFE3F2FD),
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent
+                            unfocusedContainerColor = Color(0xFFE3F2FD).copy(alpha = 0.7f),
+                            focusedLabelColor = PrimaryBlue,
+                            unfocusedLabelColor = TextSecondary
                         )
                     )
                     
                     Spacer(modifier = Modifier.height(8.dp))
                     
-                    // Password label
-                    Text(
-                        text = "Password",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color(0xFF333333)
-                    )
-                    
-                    // Password Field
-                    TextField(
+                    // Password Field Moderno
+                    OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Lock,
+                                contentDescription = null,
+                                tint = PrimaryBlue
+                            )
+                        },
+                        label = { Text("Password") },
                         visualTransformation = if (passwordVisible) VisualTransformation.None 
                                               else PasswordVisualTransformation(),
                         trailingIcon = {
@@ -296,14 +311,14 @@ fun LoginScreen(
                                 }
                             }
                         ),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = TextFieldDefaults.colors(
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = PrimaryBlue,
+                            unfocusedBorderColor = Color.Transparent,
                             focusedContainerColor = Color(0xFFE3F2FD),
-                            unfocusedContainerColor = Color(0xFFE3F2FD),
-                            disabledContainerColor = Color(0xFFE3F2FD),
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent
+                            unfocusedContainerColor = Color(0xFFE3F2FD).copy(alpha = 0.7f),
+                            focusedLabelColor = PrimaryBlue,
+                            unfocusedLabelColor = TextSecondary
                         )
                     )
                     
@@ -323,7 +338,11 @@ fun LoginScreen(
                             .fillMaxWidth()
                             .height(56.dp),
                         enabled = loginState !is LoginState.Loading,
-                        shape = RoundedCornerShape(28.dp),
+                        shape = RoundedCornerShape(16.dp), // Meno rotondo, più moderno
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 6.dp,
+                            pressedElevation = 2.dp
+                        ),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFFFEB3B),  // Yellow
                             contentColor = Color(0xFF333333)
@@ -423,12 +442,22 @@ fun LoginScreen(
             
             Spacer(modifier = Modifier.weight(1f))
             
-            // Version
-            Text(
-                text = "Versione 1.2.0",
-                fontSize = 12.sp,
-                color = Color(0xFF666666)
-            )
+            // Footer Info
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "Versione 1.2.0",
+                    fontSize = 12.sp,
+                    color = Color(0xFF666666)
+                )
+                Text(
+                    text = "© 2026 Cerotek S.r.l.",
+                    fontSize = 10.sp,
+                    color = Color(0xFF666666).copy(alpha = 0.7f)
+                )
+            }
         }
     }
 }

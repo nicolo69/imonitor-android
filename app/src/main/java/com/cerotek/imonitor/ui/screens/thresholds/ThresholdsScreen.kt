@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.cerotek.imonitor.ui.theme.*
+import com.cerotek.imonitor.data.model.ParameterThreshold
+import com.cerotek.imonitor.data.model.ParameterTypes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -14,6 +14,7 @@ class IMonitorApplication : Application() {
     val database by lazy { AppDatabase.getDatabase(this, applicationScope) }
     val repository by lazy { MeasurementRepository(database.measurementDao()) }
     val apiClient by lazy { ApiClient.getInstance(this) }
+    val settingsManager by lazy { com.cerotek.imonitor.util.SettingsManager(this) }
 
     override fun onCreate() {
         super.onCreate()

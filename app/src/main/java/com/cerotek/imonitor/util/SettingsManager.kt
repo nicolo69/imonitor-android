@@ -3,6 +3,11 @@ package com.cerotek.imonitor.util
 import android.content.Context
 import android.content.SharedPreferences
 import com.cerotek.imonitor.data.model.ParameterThreshold
+import com.cerotek.imonitor.data.model.ParameterTypes
+import com.cerotek.imonitor.data.model.DefaultThresholds
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * Legacy SettingsManager class for old Fragment-based code
@@ -11,7 +16,10 @@ import com.cerotek.imonitor.data.model.ParameterThreshold
 class SettingsManager(private val context: Context) {
     
     private val sharedPreferences: SharedPreferences = 
-        context.getSharedPreferences("imonitor_settings", Context.MODE_PRIVATE)
+        context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+
+    private val _isDarkThemeFlow = MutableStateFlow(sharedPreferences.getBoolean("dark_theme", false))
+    val isDarkThemeFlow: StateFlow<Boolean> = _isDarkThemeFlow.asStateFlow()
     
     fun getVolume(): Float {
         return sharedPreferences.getFloat("volume", 50f)
@@ -82,6 +90,15 @@ class SettingsManager(private val context: Context) {
     
     fun setAlertsEnabled(enabled: Boolean) {
         sharedPreferences.edit().putBoolean("alerts_enabled", enabled).apply()
+    }
+
+    fun isDarkTheme(): Boolean {
+        return _isDarkThemeFlow.value
+    }
+
+    fun setDarkTheme(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean("dark_theme", enabled).apply()
+        _isDarkThemeFlow.value = enabled
     }
     
     fun isVibrationEnabled(): Boolean {

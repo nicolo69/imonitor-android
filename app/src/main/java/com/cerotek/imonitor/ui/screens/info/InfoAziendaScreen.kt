@@ -29,6 +29,7 @@ fun InfoAziendaScreen(navController: NavController) {
             .padding(20.dp)
             .verticalScroll(rememberScrollState())
     ) {
+        
         // Back Button
         Button(
             onClick = { navController.popBackStack() },

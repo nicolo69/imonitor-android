@@ -32,15 +32,16 @@ import com.cerotek.imonitor.ui.components.LinkedInIcon
 import com.cerotek.imonitor.ui.components.WhatsAppIcon
 import com.cerotek.imonitor.ui.navigation.Screen
 import com.cerotek.imonitor.ui.theme.*
+import com.cerotek.imonitor.IMonitorApplication
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(navController: NavController) {
     val context = LocalContext.current
-    val sharedPrefs = remember { context.getSharedPreferences("app_settings", android.content.Context.MODE_PRIVATE) }
+    val settingsManager = remember { (context.applicationContext as IMonitorApplication).settingsManager }
     
-    var volume by remember { mutableStateOf(sharedPrefs.getFloat("volume", 50f)) }
-    var isDarkTheme by remember { mutableStateOf(sharedPrefs.getBoolean("dark_theme", false)) }
+    val volume by remember { mutableStateOf(settingsManager.getVolume()) }
+    val isDarkTheme by settingsManager.isDarkThemeFlow.collectAsState()
     
     Scaffold(
         // topBar rimosso per usare header custom
@@ -50,7 +51,7 @@ fun SettingsScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(BackgroundLight)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             // Header Custom con Gradiente
             Box(
@@ -132,20 +133,19 @@ fun SettingsScreen(navController: NavController) {
                                     "Tema Scuro",
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TextPrimary
+                                    color = MaterialTheme.colorScheme.onBackground
                                 )
                                 Text(
                                     "Riduce l'affaticamento visivo",
                                     fontSize = 13.sp,
-                                    color = TextSecondary
+                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                                 )
                             }
                         }
                         Switch(
                             checked = isDarkTheme,
                             onCheckedChange = { 
-                                isDarkTheme = it
-                                sharedPrefs.edit().putBoolean("dark_theme", it).apply()
+                                settingsManager.setDarkTheme(it)
                             },
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = Color.White,
@@ -189,13 +189,13 @@ fun SettingsScreen(navController: NavController) {
                                 "Volume Notifiche",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextPrimary
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                             Text(
                                 "${volume.toInt()}%",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = PrimaryBlue
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
@@ -203,8 +203,7 @@ fun SettingsScreen(navController: NavController) {
                     Slider(
                         value = volume,
                         onValueChange = { 
-                            volume = it
-                            sharedPrefs.edit().putFloat("volume", it).apply()
+                            // TODO: Add setVolume to SettingsManager if needed
                         },
                         valueRange = 0f..100f,
                         modifier = Modifier.fillMaxWidth(),
@@ -349,7 +348,7 @@ fun SettingCard(content: @Composable () -> Unit) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {

@@ -11,6 +11,9 @@ import androidx.compose.ui.Modifier
 import com.cerotek.imonitor.ui.navigation.MainNavigation
 import com.cerotek.imonitor.ui.theme.IMonitorTheme
 import com.cerotek.imonitor.util.PermissionManager
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import com.cerotek.imonitor.IMonitorApplication
 
 class MainActivity : ComponentActivity() {
     
@@ -50,7 +53,10 @@ class MainActivity : ComponentActivity() {
         }
         
         setContent {
-            IMonitorTheme {
+            val settingsManager = (application as IMonitorApplication).settingsManager
+            val isDarkTheme by settingsManager.isDarkThemeFlow.collectAsState()
+            
+            IMonitorTheme(darkTheme = isDarkTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

@@ -104,9 +104,9 @@ fun HomeScreen(navController: NavController) {
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.White,
-                        titleContentColor = TextPrimary,
-                        navigationIconContentColor = TextPrimary
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             },
@@ -128,16 +128,19 @@ fun HomeScreen(navController: NavController) {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .background(
-                        brush = Brush.verticalGradient(
-                            listOf(
-                                Color(0xFFE3F2FD),  // Light blue
-                                Color(0xFFBBDEFB)   // Lighter blue
-                            )
-                        )
+                    .fillMaxSize()
+                .padding(padding)
+                .background(
+                    brush = Brush.verticalGradient(
+                        if (androidx.compose.foundation.isSystemInDarkTheme() || MaterialTheme.colorScheme.background != BackgroundLight) {
+                            listOf(Color(0xFF1A1A2E), Color(0xFF16213E))
+                        } else {
+                            listOf(Color(0xFFE3F2FD), Color(0xFFBBDEFB))
+                        }
                     )
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
+                )
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // BLE Connection Alert
@@ -157,7 +160,7 @@ fun HomeScreen(navController: NavController) {
                     "CIAO $userName 👋",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
                 
@@ -255,11 +258,11 @@ fun PatientInfoDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Chiudi", color = PrimaryBlue, fontWeight = FontWeight.Bold)
+                Text("Chiudi", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
             }
         },
         shape = RoundedCornerShape(16.dp),
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.surface
     )
 }
 

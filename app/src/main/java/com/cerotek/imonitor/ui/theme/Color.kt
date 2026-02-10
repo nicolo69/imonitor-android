@@ -59,3 +59,17 @@ val VolumeSliderTrackEnd = Color(0xFF56AB2F)
 // Additional colors from web app
 val BorderColor = Color(0xFFCCCCCC)
 val SecondaryColor = Color(0xFFE8F4FF)
+
+// Premium Gradient Sets
+val PremiumBlueStart = Color(0xFF0066CC)
+val PremiumBlueEnd = Color(0xFF3498DB)
+val PremiumDarkStart = Color(0xFF1A1A2E)
+val PremiumDarkEnd = Color(0xFF16213E)
+
+// Soft Accents for Cards (Normal status)
+val SoftHeartRate = Color(0xFFFFF2F2)
+val SoftOxygen = Color(0xFFE8F9F1)
+val SoftSugar = Color(0xFFFFF9E6)
+val SoftTemperature = Color(0xFFF0FDF4)
+val SoftPressure = Color(0xFFF5F5FF)
+val SoftFat = Color(0xFFFCF5FF)

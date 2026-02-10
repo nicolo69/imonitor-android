@@ -1,13 +1,15 @@
 package com.cerotek.imonitor.ui.screens.home
 
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -15,10 +17,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -104,7 +108,7 @@ fun HomeScreen(navController: NavController) {
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
+                        containerColor = Color.Transparent, // Managed by background
                         titleContentColor = MaterialTheme.colorScheme.onSurface,
                         navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                     )
@@ -127,22 +131,24 @@ fun HomeScreen(navController: NavController) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
-                    .fillMaxSize()
-                .padding(padding)
-                .background(
-                    brush = Brush.verticalGradient(
-                        if (androidx.compose.foundation.isSystemInDarkTheme() || MaterialTheme.colorScheme.background != BackgroundLight) {
-                            listOf(Color(0xFF1A1A2E), Color(0xFF16213E))
-                        } else {
-                            listOf(Color(0xFFE3F2FD), Color(0xFFBBDEFB))
-                        }
+                    .padding(padding) // Restore scaffold padding to avoid TopAppBar overlap
+                    .background(
+                        brush = Brush.verticalGradient(
+                            if (androidx.compose.foundation.isSystemInDarkTheme() || MaterialTheme.colorScheme.background != BackgroundLight) {
+                                listOf(PremiumDarkStart, PremiumDarkEnd)
+                            } else {
+                                listOf(Color(0xFFF8FBFF), Color(0xFFEAF4FF))
+                            }
+                        )
                     )
-                )
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
+                // Entrance animation state
+                var visible by remember { mutableStateOf(false) }
+                LaunchedEffect(Unit) { visible = true }
+
                 // BLE Connection Alert
                 if (showBleAlert && bleConnectionState != BleConnectionState.CONNECTED) {
                     BleConnectionAlert(
@@ -154,22 +160,25 @@ fun HomeScreen(navController: NavController) {
                     )
                 }
                 
-                // Welcome Text
-                val userName = userInfo?.firstName?.uppercase() ?: "UTENTE"
-                Text(
-                    "CIAO $userName 👋",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
+                // Welcome Dashboard Header
+                AnimatedVisibility(
+                    visible = visible,
+                    enter = fadeIn(tween(600)) + expandVertically(tween(600))
+                ) {
+                    DashboardHeader(userInfo = userInfo)
+                }
                 
                 // Parameters Grid 2x2
-                ParametersGrid(
-                    navController = navController,
-                    latestMeasurements = latestMeasurements,
-                    parameterStatuses = parameterStatuses
-                )
+                AnimatedVisibility(
+                    visible = visible,
+                    enter = fadeIn(tween(800, delayMillis = 200)) + slideInVertically(tween(800, delayMillis = 200)) { 50 }
+                ) {
+                    ParametersGrid(
+                        navController = navController,
+                        latestMeasurements = latestMeasurements,
+                        parameterStatuses = parameterStatuses
+                    )
+                }
             }
         }
         
@@ -640,41 +649,108 @@ fun DrawerMenuItem(
 }
 
 @Composable
-fun WelcomeCard() {
+fun DashboardHeader(userInfo: com.cerotek.imonitor.util.SecurePreferences.UserInfo?) {
+    val currentTime = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+    val greeting = when (currentTime) {
+        in 5..12 -> "Buongiorno"
+        in 13..17 -> "Buon pomeriggio"
+        in 18..22 -> "Buonasera"
+        else -> "Buonanotte"
+    }
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(4.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(12.dp, RoundedCornerShape(24.dp)),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
                     brush = Brush.linearGradient(
-                        listOf(PrimaryBlue, PrimaryBlueLight)
+                        listOf(PrimaryBlue, PrimaryBlueDark)
                     )
                 )
                 .padding(24.dp)
         ) {
-            Column {
-                Text(
-                    "👋 Benvenuto!",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
+            // Decorative shapes
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.05f),
+                    radius = 300f,
+                    center = androidx.compose.ui.geometry.Offset(size.width - 50f, 50f)
                 )
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = greeting,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.White.copy(alpha = 0.8f),
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = userInfo?.firstName ?: "Utente",
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = Color.White,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
+                    
+                    Surface(
+                        color = Color.White.copy(alpha = 0.2f),
+                        shape = CircleShape,
+                        modifier = Modifier.size(56.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                Icons.Default.VerifiedUser,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+                    }
+                }
+                
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    "Monitora la tua salute in tempo reale",
-                    fontSize = 16.sp,
-                    color = Color.White.copy(alpha = 0.9f)
-                )
+                
+                HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
+                
+                Spacer(modifier = Modifier.height(4.dp))
+                
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Insights,
+                        contentDescription = null,
+                        tint = GreenGradientStart,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        "Il tuo monitoraggio è attivo",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.White.copy(alpha = 0.9f)
+                    )
+                }
             }
         }
     }
+}
+
+@Composable
+fun WelcomeCard() {
+    // Deprecated in favor of DashboardHeader, but keeping for compatibility if needed
 }
 
 @Composable
@@ -791,9 +867,12 @@ fun BigParameterCard(
         ParameterStatus.ALERT -> listOf(RedGradientStart, RedGradientEnd)
         ParameterStatus.WARNING -> listOf(YellowGradientStart, YellowGradientEnd)
         ParameterStatus.NORMAL -> when (parameter.type) {
-            "heart_rate", "blood_pressure" -> listOf(Color(0xFFFFF0F0), Color(0xFFFFEBEB)) // Light Red
-            "oxygen_saturation", "temperature" -> listOf(Color(0xFFE8F5E9), Color(0xFFC8E6C9)) // Light Green
-            "blood_sugar", "body_fat" -> listOf(Color(0xFFFFF8E1), Color(0xFFFFECB3)) // Light Orange
+            "heart_rate" -> listOf(SoftHeartRate, Color.White)
+            "blood_pressure" -> listOf(SoftPressure, Color.White)
+            "oxygen_saturation" -> listOf(SoftOxygen, Color.White)
+            "temperature" -> listOf(SoftTemperature, Color.White)
+            "blood_sugar" -> listOf(SoftSugar, Color.White)
+            "body_fat" -> listOf(SoftFat, Color.White)
             else -> listOf(Color.White, Color(0xFFF5F5F5))
         }
     }
@@ -807,7 +886,12 @@ fun BigParameterCard(
     val iconTint = when (parameter.status) {
         ParameterStatus.ALERT -> Color.White
         ParameterStatus.WARNING -> Color(0xFF5D4037)
-        ParameterStatus.NORMAL -> PrimaryBlue
+        ParameterStatus.NORMAL -> when (parameter.type) {
+            "heart_rate", "blood_pressure" -> Color(0xFFE74C3C)
+            "oxygen_saturation", "temperature" -> Color(0xFF27AE60)
+            "blood_sugar", "body_fat" -> Color(0xFFF39C12)
+            else -> PrimaryBlue
+        }
     }
     
     Card(
@@ -832,7 +916,7 @@ fun BigParameterCard(
                 .background(
                     brush = Brush.verticalGradient(gradientColors)
                 )
-                .padding(16.dp),
+                .padding(20.dp), // Increased padding
             contentAlignment = Alignment.Center
         ) {
             Column(
@@ -842,31 +926,39 @@ fun BigParameterCard(
             ) {
                 // Header: Icona e Nome
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    if (parameter.iconRes != null) {
-                        Icon(
-                            painter = androidx.compose.ui.res.painterResource(id = parameter.iconRes),
-                            contentDescription = null,
-                            tint = iconTint,
-                            modifier = Modifier.size(48.dp)
-                        )
-                    } else if (parameter.type == "heart_rate") {
-                         Icon(
-                            imageVector = Icons.Default.Favorite,
-                            contentDescription = null,
-                            tint = iconTint,
-                            modifier = Modifier.size(48.dp)
-                        )
+                    Surface(
+                        color = iconTint.copy(alpha = 0.1f),
+                        shape = CircleShape,
+                        modifier = Modifier.size(52.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            if (parameter.iconRes != null) {
+                                Icon(
+                                    painter = painterResource(id = parameter.iconRes),
+                                    contentDescription = null,
+                                    tint = iconTint,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            } else if (parameter.type == "heart_rate") {
+                                Icon(
+                                    imageVector = Icons.Default.Favorite,
+                                    contentDescription = null,
+                                    tint = iconTint,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            }
+                        }
                     }
                     
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                     
                     Text(
-                        parameter.name.replace("\n", " "), // Su una riga se possibile
-                        fontSize = 13.sp,
+                        parameter.name.replace("\n", " "),
+                        style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = textColor.copy(alpha = 0.8f),
+                        color = textColor.copy(alpha = 0.6f),
                         textAlign = TextAlign.Center,
-                        maxLines = 2
+                        maxLines = 1
                     )
                 }
                 
@@ -877,17 +969,17 @@ fun BigParameterCard(
                 ) {
                     Text(
                         text = if (parameter.value != "--") parameter.value else "--",
-                        fontSize = 28.sp,
+                        style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.ExtraBold,
                         color = textColor
                     )
                     if (parameter.unit.isNotEmpty()) {
                         Text(
                             text = parameter.unit,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = textColor.copy(alpha = 0.7f),
-                            modifier = Modifier.padding(bottom = 6.dp, start = 2.dp)
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = textColor.copy(alpha = 0.5f),
+                            modifier = Modifier.padding(bottom = 6.dp, start = 4.dp)
                         )
                     }
                 }

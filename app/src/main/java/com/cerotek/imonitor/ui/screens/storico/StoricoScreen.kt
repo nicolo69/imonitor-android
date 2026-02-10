@@ -22,10 +22,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.cerotek.imonitor.R
 import androidx.navigation.NavController
 import com.cerotek.imonitor.ui.theme.*
 import java.text.SimpleDateFormat
@@ -78,7 +80,7 @@ fun StoricoScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         // Top Bar with gradient
         Box(
@@ -95,39 +97,49 @@ fun StoricoScreen(navController: NavController) {
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Back Button
-                Button(
+                IconButton(
                     onClick = { navController.popBackStack() },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White.copy(alpha = 0.2f)
-                    ),
-                    shape = RoundedCornerShape(12.dp)
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(Color.White.copy(alpha = 0.2f), CircleShape)
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Indietro",
                         tint = Color.White
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Indietro", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
                 
                 // Header
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text("📊", fontSize = 48.sp)
+                    Surface(
+                        color = Color.White.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.size(64.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                Icons.Default.BarChart,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
+                    }
                     Column {
                         Text(
-                            text = "Storico Misurazioni",
-                            fontSize = 32.sp,
+                            text = "Storico",
+                            style = MaterialTheme.typography.headlineLarge,
                             fontWeight = FontWeight.ExtraBold,
                             color = Color.White
                         )
                         Text(
                             text = "${allMeasurements.size} misurazioni totali",
-                            fontSize = 16.sp,
-                            color = Color.White.copy(alpha = 0.9f)
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.8f)
                         )
                     }
                 }
@@ -147,21 +159,21 @@ fun StoricoScreen(navController: NavController) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 StatisticCard(
-                    icon = "🔴",
+                    icon = Icons.Default.Dangerous,
                     count = criticalCount,
                     label = "Critiche",
                     color = StatusRed,
                     modifier = Modifier.weight(1f)
                 )
                 StatisticCard(
-                    icon = "🟡",
+                    icon = Icons.Default.Warning,
                     count = warningCount,
                     label = "Attenzione",
                     color = StatusYellow,
                     modifier = Modifier.weight(1f)
                 )
                 StatisticCard(
-                    icon = "🟢",
+                    icon = Icons.Default.CheckCircle,
                     count = normalCount,
                     label = "Normali",
                     color = StatusGreen,
@@ -172,8 +184,8 @@ fun StoricoScreen(navController: NavController) {
             // Filter Chips
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(2.dp)
             ) {
                 Column(
@@ -191,28 +203,28 @@ fun StoricoScreen(navController: NavController) {
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         FilterChip(
-                            label = "Tutti",
+                            label = "Tutte",
                             selected = selectedFilter == "Tutti",
                             onClick = { selectedFilter = "Tutti" },
-                            icon = "📋"
+                            icon = Icons.Default.List
                         )
                         FilterChip(
                             label = "Critiche",
                             selected = selectedFilter == "Critiche",
                             onClick = { selectedFilter = "Critiche" },
-                            icon = "🔴"
+                            icon = Icons.Default.Error
                         )
                         FilterChip(
                             label = "Attenzione",
                             selected = selectedFilter == "Attenzione",
                             onClick = { selectedFilter = "Attenzione" },
-                            icon = "🟡"
+                            icon = Icons.Default.Warning
                         )
                         FilterChip(
                             label = "Normali",
                             selected = selectedFilter == "Normali",
                             onClick = { selectedFilter = "Normali" },
-                            icon = "🟢"
+                            icon = Icons.Default.CheckCircle
                         )
                     }
                 }
@@ -265,7 +277,7 @@ fun StoricoScreen(navController: NavController) {
 
 @Composable
 fun StatisticCard(
-    icon: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
     count: Int,
     label: String,
     color: Color,
@@ -273,9 +285,9 @@ fun StatisticCard(
 ) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
@@ -286,18 +298,23 @@ fun StatisticCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(icon, fontSize = 36.sp)
+            Icon(
+                icon, 
+                contentDescription = null, 
+                tint = color,
+                modifier = Modifier.size(28.dp)
+            )
             Text(
                 text = count.toString(),
-                fontSize = 32.sp,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.ExtraBold,
                 color = color
             )
             Text(
                 text = label,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = TextSecondary,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center
             )
         }
@@ -309,25 +326,30 @@ fun FilterChip(
     label: String,
     selected: Boolean,
     onClick: () -> Unit,
-    icon: String
+    icon: androidx.compose.ui.graphics.vector.ImageVector
 ) {
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(20.dp),
-        color = if (selected) PrimaryBlue else BackgroundLight,
-        modifier = Modifier.height(40.dp)
+        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        modifier = Modifier.height(44.dp)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(icon, fontSize = 16.sp)
+            Icon(
+                icon, 
+                contentDescription = null, 
+                modifier = Modifier.size(16.dp),
+                tint = if (selected) Color.White else MaterialTheme.colorScheme.primary
+            )
             Text(
                 text = label,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = if (selected) Color.White else TextPrimary
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -362,9 +384,9 @@ fun AnimatedMeasurementCard(measurement: Measurement) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable { expanded = !expanded },
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(4.dp)
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(if (expanded) 6.dp else 2.dp)
     ) {
         Column(
             modifier = Modifier.padding(20.dp)
@@ -381,38 +403,51 @@ fun AnimatedMeasurementCard(measurement: Measurement) {
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(60.dp)
+                            .size(56.dp)
                             .background(
                                 color = statusColor.copy(alpha = 0.1f),
-                                shape = RoundedCornerShape(12.dp)
+                                shape = RoundedCornerShape(16.dp)
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = when (measurement.type) {
-                                "Pressione" -> "🩸"
-                                "Saturazione" -> "🫁"
-                                "Battito" -> "❤️"
-                                "Temperatura" -> "🌡️"
-                                "Glicemia" -> "🍬"
-                                "Grassi" -> "⚖️"
-                                else -> "📊"
-                            },
-                            fontSize = 32.sp
-                        )
+                        val iconRes = when (measurement.type) {
+                            "Pressione" -> R.drawable.ic_pressione
+                            "Saturazione" -> R.drawable.ic_saturazione
+                            "Battito" -> null // No specialized icon yet
+                            "Temperatura" -> R.drawable.ic_temperatura
+                            "Glicemia" -> R.drawable.ic_glicemia
+                            "Grassi" -> R.drawable.ic_grassi
+                            else -> null
+                        }
+                        
+                        if (iconRes != null) {
+                            Icon(
+                                painter = painterResource(id = iconRes),
+                                contentDescription = null,
+                                tint = statusColor,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        } else {
+                            Icon(
+                                imageVector = if (measurement.type == "Battito") Icons.Default.Favorite else Icons.Default.Assessment,
+                                contentDescription = null,
+                                tint = statusColor,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
                     }
                     
                     Column {
                         Text(
                             text = measurement.type,
-                            fontSize = 18.sp,
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = TextPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = dateFormat.format(Date(measurement.timestamp)),
-                            fontSize = 14.sp,
-                            color = TextSecondary
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     }
                 }
@@ -423,20 +458,20 @@ fun AnimatedMeasurementCard(measurement: Measurement) {
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
                         verticalAlignment = Alignment.Bottom
                     ) {
                         Text(
                             text = measurement.value,
-                            fontSize = 28.sp,
+                            style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.ExtraBold,
                             color = statusColor
                         )
                         Text(
                             text = measurement.unit,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = TextSecondary,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             modifier = Modifier.padding(bottom = 4.dp)
                         )
                     }
@@ -474,12 +509,12 @@ fun AnimatedMeasurementCard(measurement: Measurement) {
                         .padding(top = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    HorizontalDivider(color = BackgroundLight, thickness = 2.dp)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
                     
                     // Additional details
-                    DetailRow(icon = "📅", label = "Data completa", value = dateFormatFull.format(Date(measurement.timestamp)))
-                    DetailRow(icon = "🆔", label = "ID Misurazione", value = "#${measurement.id.toString().padStart(4, '0')}")
-                    DetailRow(icon = "⏱️", label = "Tempo fa", value = getTimeAgo(measurement.timestamp))
+                    DetailRow(icon = Icons.Default.CalendarToday, label = "Data completa", value = dateFormatFull.format(Date(measurement.timestamp)))
+                    DetailRow(icon = Icons.Default.Tag, label = "ID Misurazione", value = "#${measurement.id.toString().padStart(4, '0')}")
+                    DetailRow(icon = Icons.Default.Timer, label = "Tempo fa", value = getTimeAgo(measurement.timestamp))
                     
                     // Action buttons
                     Row(
@@ -490,9 +525,9 @@ fun AnimatedMeasurementCard(measurement: Measurement) {
                             onClick = { /* Export action */ },
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = PrimaryBlue
+                                containerColor = MaterialTheme.colorScheme.primary
                             ),
-                            shape = RoundedCornerShape(10.dp)
+                            shape = RoundedCornerShape(12.dp)
                         ) {
                             Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(6.dp))
@@ -502,9 +537,9 @@ fun AnimatedMeasurementCard(measurement: Measurement) {
                         OutlinedButton(
                             onClick = { /* Details action */ },
                             modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(10.dp),
+                            shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = PrimaryBlue
+                                contentColor = MaterialTheme.colorScheme.primary
                             )
                         ) {
                             Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -519,28 +554,33 @@ fun AnimatedMeasurementCard(measurement: Measurement) {
 }
 
 @Composable
-fun DetailRow(icon: String, label: String, value: String) {
+fun DetailRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(icon, fontSize = 18.sp)
+            Icon(
+                icon, 
+                contentDescription = null, 
+                modifier = Modifier.size(18.dp),
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+            )
             Text(
                 text = label,
-                fontSize = 14.sp,
-                color = TextSecondary
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
         }
         Text(
             text = value,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = TextPrimary
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }

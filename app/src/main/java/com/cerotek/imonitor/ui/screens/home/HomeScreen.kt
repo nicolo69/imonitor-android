@@ -422,14 +422,18 @@ fun DrawerContent(
     onNavigate: (String) -> Unit,
     onLogout: () -> Unit
 ) {
+    val surfaceColor = MaterialTheme.colorScheme.surface
     ModalDrawerSheet(
-        drawerContainerColor = Color.White
+        drawerContainerColor = surfaceColor,
+        drawerContentColor = MaterialTheme.colorScheme.onSurface,
+        drawerShape = RoundedCornerShape(topEnd = 32.dp, bottomEnd = 32.dp),
+        modifier = Modifier.width(320.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            // Header Migliorato
+            // Header Premium
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -438,40 +442,51 @@ fun DrawerContent(
                             listOf(PrimaryBlue, PrimaryBlueDark)
                         )
                     )
-                    .padding(24.dp)
+                    .padding(top = 48.dp, start = 24.dp, end = 24.dp, bottom = 32.dp)
             ) {
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
-                    // Avatar Placeholder
+                    // Avatar con effetto premium
                     Surface(
-                        shape = androidx.compose.foundation.shape.CircleShape,
-                        color = Color.White,
-                        modifier = Modifier.size(64.dp)
+                        shape = CircleShape,
+                        color = Color.White.copy(alpha = 0.9f),
+                        modifier = Modifier
+                            .size(72.dp)
+                            .shadow(8.dp, CircleShape),
+                        border = androidx.compose.foundation.BorderStroke(2.dp, Color.White.copy(alpha = 0.5f))
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 Icons.Default.Person,
                                 contentDescription = null,
                                 tint = PrimaryBlue,
-                                modifier = Modifier.size(32.dp)
+                                modifier = Modifier.size(36.dp)
                             )
                         }
                     }
                     
-                    Column {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         val userName = userInfo?.firstName ?: "Utente"
                         Text(
-                            "Ciao $userName",
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
+                            "Ciao, $userName",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.ExtraBold,
                             color = Color.White
                         )
-                        Text(
-                            "iMonitor System",
-                            fontSize = 14.sp,
-                            color = Color.White.copy(alpha = 0.8f)
-                        )
+                        Surface(
+                            color = Color.White.copy(alpha = 0.2f),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                "iMonitor B2C",
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                letterSpacing = 1.sp
+                            )
+                        }
                     }
                 }
             }
@@ -483,13 +498,13 @@ fun DrawerContent(
                     .verticalScroll(rememberScrollState())
                     .padding(vertical = 16.dp, horizontal = 12.dp)
             ) {
-                // Sezione Monitoraggio
                 Text(
                     "MONITORAGGIO",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextSecondary,
-                    modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(start = 16.dp, bottom = 12.dp, top = 8.dp),
+                    letterSpacing = 1.5.sp
                 )
                 
                 DrawerMenuItem(
@@ -515,10 +530,11 @@ fun DrawerContent(
                 // Sezione Sistema
                 Text(
                     "SISTEMA",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextSecondary,
-                    modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(start = 16.dp, bottom = 12.dp, top = 8.dp),
+                    letterSpacing = 1.5.sp
                 )
                 
                 DrawerMenuItem(
@@ -554,25 +570,31 @@ fun DrawerContent(
                 )
             }
             
-            // Footer
-            Box(
+            // Footer Decorativo
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Surface(
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
                     Text(
                         "Versione 1.2.0",
-                        fontSize = 12.sp,
-                        color = TextSecondary
-                    )
-                    Text(
-                        "© 2026 Cerotek S.r.l.",
-                        fontSize = 10.sp,
-                        color = TextSecondary.copy(alpha = 0.7f)
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
+                Text(
+                    "© 2026 Cerotek S.r.l.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
             }
         }
     }
@@ -585,16 +607,35 @@ fun DrawerMenuItem(
     onClick: () -> Unit,
     colors: NavigationDrawerItemColors = NavigationDrawerItemDefaults.colors(
         unselectedContainerColor = Color.Transparent,
-        selectedContainerColor = PrimaryBlue.copy(alpha = 0.1f)
+        selectedContainerColor = PrimaryBlue.copy(alpha = 0.1f),
+        unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+        unselectedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
     )
 ) {
     NavigationDrawerItem(
-        icon = { Icon(icon, contentDescription = title) },
-        label = { Text(title, fontSize = 16.sp) },
+        icon = { 
+            Surface(
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.size(36.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(icon, contentDescription = title, modifier = Modifier.size(20.dp))
+                }
+            }
+        },
+        label = { 
+            Text(
+                title, 
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium
+            ) 
+        },
         selected = false,
         onClick = onClick,
-        modifier = Modifier.padding(vertical = 4.dp),
-        colors = colors
+        modifier = Modifier.padding(vertical = 2.dp, horizontal = 12.dp),
+        colors = colors,
+        shape = RoundedCornerShape(12.dp)
     )
 }
 
